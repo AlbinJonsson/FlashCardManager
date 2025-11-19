@@ -16,6 +16,11 @@ public class Deck {
         this.progress = new DeckProgress(totalCount);
     }
 
+    @Override
+    public String toString() {
+        return title + " (" + totalCount + " cards)";
+    }
+
     public Long getId() {
         return id;
     }
