@@ -4,13 +4,14 @@ import java.time.LocalDate;
 
 public class CardLearningState {
     private LocalDate nextReviewDate;
-    private double easeFactor;
     private LocalDate lastReviewDate;
+    private int numberOfTimesViewd;
     //private RatingStrategy lastRating
 
-    public CardLearningState(LocalDate nextReviewDate,LocalDate lastReviewDate, double easeFactor) {
+    public CardLearningState(LocalDate nextReviewDate,LocalDate lastReviewDate, int numberOfTimesViewd) {
         this.nextReviewDate = nextReviewDate;
-        this.easeFactor = easeFactor;
+        this.lastReviewDate = lastReviewDate;
+        this.numberOfTimesViewd = numberOfTimesViewd;
     }
 
 }
