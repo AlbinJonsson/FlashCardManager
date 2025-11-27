@@ -10,6 +10,9 @@ public class FlashCard {
     public FlashCard() {}
 
     public FlashCard(int id, String front, String back, int deckId) {
+        if (front == null || front.isBlank()) throw new IllegalArgumentException("Front text required");
+        if (back == null || back.isBlank()) throw new IllegalArgumentException("Back text required");
+
         this.id = id;
         this.front = front;
         this.back = back;
