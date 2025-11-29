@@ -34,9 +34,15 @@ public class MainFrame extends JFrame {
     public MainFrame(){
         initComponents();
         LayoutComponents();
+        showPage("Home"); // Show home view by default
+
         // Frame settings
         setTitle("Flashcard APP");
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); 
+        setSize(1200, 800);
+        setLocationRelativeTo(null); // Center the frame on the screen
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        setNavbarListener();
 
     }
 
@@ -85,6 +91,16 @@ public class MainFrame extends JFrame {
         add(contentPanel, BorderLayout.CENTER);
         // add overlay layer on top of content panel
         add(overlayLayer, BorderLayout.CENTER);
+    }
+
+    // Methods to switch views, toggle friends view, and manage overlay can be added here
+    // Ändrar view helt enkelt i contentPanel
+    public void showPage(String pageName) {
+        cardLayout.show(contentPanel, pageName);
+    }
+
+    public void setNavbarListener(){
+        navbarView.setOnNavigate(this::showPage);
     }
 
 }
