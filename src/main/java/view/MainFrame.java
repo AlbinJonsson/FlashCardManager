@@ -3,6 +3,7 @@ package view;
 import javax.swing.*;
 import java.awt.*;
 import java.util.NavigableMap;
+import java.util.Set;
 
 
 public class MainFrame extends JFrame {
@@ -30,6 +31,14 @@ public class MainFrame extends JFrame {
     // Overlay (for popup blur)
     private JPanel overlayLayer;   // används för blur eller popup-darkening
 
+    public MainFrame(){
+        initComponents();
+        LayoutComponents();
+        // Frame settings
+        setTitle("Flashcard APP");
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); 
+
+    }
 
     private void initComponents() {
         // init card layout + contentPanel
