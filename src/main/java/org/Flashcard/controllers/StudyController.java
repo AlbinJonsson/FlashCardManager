@@ -18,36 +18,37 @@ import java.sql.SQLException;
 
 
 public class StudyController {
-    private final StrategyFactory strategyFactory;
     private final RatingContext ratingContext;
+
     private final FlashCardRepository flashCardRepository;
     private final DeckRepository deckRepository;
     private final UserRepository userRepository;
 
     private StudySession currentSession;
 
-    public StudyController(RatingContext ratingContext, StrategyFactory strategyFactory
-                           ,FlashCardRepository flashCardRepository, DeckRepository deckRepository, UserRepository userRepository) {
+    public StudyController(RatingContext ratingContext,
+                           FlashCardRepository flashCardRepository,
+                           DeckRepository deckRepository,
+                           UserRepository userRepository) {
         this.ratingContext = ratingContext;
-        this.strategyFactory = strategyFactory;
         this.deckRepository = deckRepository;
         this.userRepository = userRepository;
-
-
         this.flashCardRepository = flashCardRepository;
     }
+
     public void startSession(String algorithmStrategy, int deckId, int userId) throws SQLException {
         User currentUser = userRepository.findById(userId);
         Deck currentDeck = deckRepository.findByIdWithCards(deckId);
         StudyAlgorithm algorithm = StudyAlgorithmFactory.createAlgorithm(algorithmStrategy.toLowerCase());
 
         currentSession = new StudySession(currentDeck, currentUser, algorithm);
+        currentSession.startSession();
     }
     public void applyRating(String rating,int deckID, int cardID) throws SQLException {
         //Hämtar flashcard från FlashCardRepository med cardID
         FlashCard flashCard = flashCardRepository.findByDeckId(deckID).get(cardID);
         //Väljer strategi beroende på vad viewn skickar för rating
-        ratingContext.setStrategy(strategyFactory.createStrategy(rating));
+        ratingContext.setStrategy(StrategyFactory.createStrategy(rating));
         //Sätter ny rating på kortet
         ratingContext.executeStrategy(flashCard);
     }

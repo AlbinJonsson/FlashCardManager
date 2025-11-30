@@ -3,10 +3,10 @@ package org.Flashcard.models.ratingStrategy;
 
 import java.util.List;
 
-public abstract class StrategyFactory {
-    public StrategyFactory(){
+public final class StrategyFactory {        //No inheritance of this class
+    private StrategyFactory(){
     }
-    public RatingStrategy createStrategy(String difficulty){
+    public static RatingStrategy createStrategy(String difficulty){
         return switch (difficulty) {
             case "easy" -> new StrategyEasy();
             case "medium" -> new StrategyMedium();
@@ -15,7 +15,7 @@ public abstract class StrategyFactory {
             default -> null;
         };
     }
-    public List<String> getAllRatingNames(){
+    public static List<String> getAllRatingNames(){
         return List.of("easy", "medium", "hard", "again");
     }
 }

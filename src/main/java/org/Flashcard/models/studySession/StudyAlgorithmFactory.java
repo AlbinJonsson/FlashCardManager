@@ -1,9 +1,9 @@
 package org.Flashcard.models.studySession;
 
-public class StudyAlgorithmFactory {
+public final class StudyAlgorithmFactory {
 
 
-    public StudyAlgorithmFactory() {
+    private StudyAlgorithmFactory() {
     }
 
     public static StudyAlgorithm createAlgorithm(String algorithmType) {

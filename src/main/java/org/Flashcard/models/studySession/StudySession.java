@@ -8,7 +8,6 @@ import java.util.List;
 
 public class StudySession {
     private List<FlashCard> cards;
-
     private final Deck deck;
     private final User user;
 
@@ -22,15 +21,12 @@ public class StudySession {
         this.user = user;
     }
 
-    private void startSession(){
+    public void startSession(){
         cards = studyAlgorithm.prepareCards(deck, user);
     }
 
     public FlashCard getNextCardAndRemove() {
-        if (this.cards.isEmpty()) {
-            return null;
-        }
-        FlashCard currentCard = cards.get(0);
+        if (cards == null || cards.isEmpty()) return null;
         return cards.remove(0);
     }
 }
