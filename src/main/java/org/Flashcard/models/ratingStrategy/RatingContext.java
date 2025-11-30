@@ -17,7 +17,7 @@ public class RatingContext {
 
     //Kallar på strategins metoder
     public void executeStrategy(FlashCard flashCard) {
-        strategy.calculateNextReviewDate();
+        strategy.calculateNextReviewDate(flashCard);
         strategy.setRating(flashCard);
     }
 }

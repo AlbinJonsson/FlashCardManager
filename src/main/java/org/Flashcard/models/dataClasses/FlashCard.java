@@ -5,6 +5,7 @@ public class FlashCard {
     private String front;
     private String back;
     private int deckId;
+    private CardLearningState cardLearningState;
 
     // Constructors
     public FlashCard() {}
@@ -17,12 +18,17 @@ public class FlashCard {
         this.front = front;
         this.back = back;
         this.deckId = deckId;
+        this.cardLearningState = cardLearningState;
     }
 
     public FlashCard(String front, String back, int deckId) {
         this.front = front;
         this.back = back;
         this.deckId = deckId;
+    }
+
+    public CardLearningState getCardLearningState() { //TODO
+        return cardLearningState;
     }
 
     // Getters and Setters

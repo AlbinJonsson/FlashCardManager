@@ -1,6 +1,7 @@
 package org.Flashcard.models.ratingStrategy;
 
 
+import java.util.List;
 
 public abstract class StrategyFactory {
     public StrategyFactory(){
@@ -13,5 +14,8 @@ public abstract class StrategyFactory {
             case "again" -> new StrategyAgain();
             default -> null;
         };
+    }
+    public List<String> getAllRatingNames(){
+        return List.of("easy", "medium", "hard", "again");
     }
 }
