@@ -109,6 +109,9 @@ public class NavbarView extends JPanel {
 
         // Style search box
         searchBox.applyTheme(Theme.TEXT, Theme.NAV_BG);
+
+        // borderline at bottom of navbar
+        setBorder(BorderFactory.createMatteBorder(0, 0, 2, 0, Theme.BORDER));
     }
 
     // Metod which highlights the active button
