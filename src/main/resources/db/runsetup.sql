@@ -29,6 +29,6 @@ SELECT * FROM Decks;
 SELECT * FROM Tags;
 SELECT * FROM FlashCards;
 
-SELECT * FROM UserDecks WHERE user_id = 2;  -- Alice decks
+SELECT * FROM UserDecks WHERE userId = 2;  -- Alice decks
 
-SELECT * FROM FlashCardsFull WHERE user_id = 1; -- Alice flashcards
+SELECT * FROM FlashCardsFull WHERE userId = 1; -- Alice flashcards

@@ -1,8 +1,8 @@
 package view;
 
-import org.Flashcard.controllers.DeckController;
-import org.Flashcard.controllers.StudyController;
-import org.Flashcard.controllers.UserController;
+import org.flashcard.controllers.DeckController;
+import org.flashcard.controllers.StudyController;
+import org.flashcard.controllers.UserController;
 
 import javax.swing.*;
 import java.awt.*;
