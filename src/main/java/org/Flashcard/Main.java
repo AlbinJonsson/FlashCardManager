@@ -1,9 +1,12 @@
 package org.Flashcard;
 
+import org.Flashcard.controllers.DeckController;
 import org.Flashcard.controllers.StudyController;
 import org.Flashcard.controllers.UserController;
+import org.Flashcard.models.dataClasses.CardLearningState;
 import org.Flashcard.repositories.*;
 import org.Flashcard.view.AppWindow;
+import view.MainFrame;
 
 import javax.swing.*;
 
@@ -27,10 +30,11 @@ public class Main {
                     flashCardRepo,
                     deckRepo,
                     userRepo);
+            final DeckController deckController = new DeckController();
 
-            //Create views, and inject controller into panel
-            AppWindow window = new AppWindow(userController);
-            window.setVisible(true);
+
+            MainFrame frame = new MainFrame(userController,studyController,deckController);
+            frame.setVisible(true);
 
         });
     }
