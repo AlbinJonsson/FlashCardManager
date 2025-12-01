@@ -1,5 +1,9 @@
 package view;
 
+import org.Flashcard.controllers.DeckController;
+import org.Flashcard.controllers.StudyController;
+import org.Flashcard.controllers.UserController;
+
 import javax.swing.*;
 import java.awt.*;
 
@@ -22,7 +26,9 @@ public class MainFrame extends JFrame {
     private JPanel overlayLayer;           // semi-transparent overlay
     private JPanel backgroundPanel;        // REAL background (fixar vit-buggen)
 
-    public MainFrame() {
+    public MainFrame(UserController userController,
+                     StudyController studyController,
+                     DeckController deckController) {
         initComponents();
         layoutComponents();
         showPage("Home");

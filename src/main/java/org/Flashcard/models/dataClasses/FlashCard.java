@@ -18,7 +18,6 @@ public class FlashCard {
         this.front = front;
         this.back = back;
         this.deckId = deckId;
-        this.cardLearningState = cardLearningState;
     }
 
     public FlashCard(String front, String back, int deckId) {
@@ -43,6 +42,7 @@ public class FlashCard {
 
     public int getDeckId() { return deckId; }
     public void setDeckId(int deckId) { this.deckId = deckId; }
+
 
     @Override
     public String toString() {
