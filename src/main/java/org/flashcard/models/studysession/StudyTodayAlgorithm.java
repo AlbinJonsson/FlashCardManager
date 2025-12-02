@@ -1,0 +1,19 @@
+package org.flashcard.models.studysession;
+
+import org.flashcard.models.dataclasses.Deck;
+import org.flashcard.models.dataclasses.Flashcard;
+import org.flashcard.models.dataclasses.User;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+public class StudyTodayAlgorithm implements StudyAlgorithm {
+    public StudyTodayAlgorithm() {}
+
+    @Override
+    public List<Flashcard> prepareCards(Deck deck, User user) {
+        return deck.getCards().stream()
+                .filter(card -> card.getCardLearningState().isDueToday())
+                .collect(Collectors.toList());
+    }
+}
