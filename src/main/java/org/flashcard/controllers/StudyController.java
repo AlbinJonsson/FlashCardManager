@@ -25,6 +25,7 @@ public class StudyController {
     private final FlashcardRepository flashcardRepository;
     private final DeckRepository deckRepository;
     private final UserRepository userRepository;
+    private Deck currentDeck;
 
     private StudySession currentSession;
 
@@ -46,6 +47,8 @@ public class StudyController {
 
         // Load flashcards eagerly if needed
         List<Flashcard> cards = flashcardRepository.findByDeck(currentDeck);
+        currentDeck.setCards(cards);
+
 
         StudyAlgorithm algorithm = StudyAlgorithmFactory.createAlgorithm(algorithmStrategy.toLowerCase());
         currentSession = new StudySession(currentDeck, currentUser, algorithm);
