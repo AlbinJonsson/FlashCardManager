@@ -1,9 +1,11 @@
 package org.flashcard.controllers;
 
+import org.flashcard.application.dto.FlashcardDTO;
+import org.flashcard.application.mapper.FlashcardMapper;
 import org.flashcard.models.dataclasses.Deck;
 import org.flashcard.models.dataclasses.Flashcard;
 import org.flashcard.models.dataclasses.User;
-import org.flashcard.models.ratingstrategy.RatingContext;
+import org.flashcard.models.ratingstrategy.RatingStrategy;
 import org.flashcard.models.ratingstrategy.StrategyFactory;
 import org.flashcard.models.studysession.StudyAlgorithm;
 import org.flashcard.models.studysession.StudyAlgorithmFactory;
@@ -23,6 +25,7 @@ public class StudyController {
     private final FlashcardRepository flashcardRepository;
     private final DeckRepository deckRepository;
     private final UserRepository userRepository;
+    private Deck currentDeck;
 
     private StudySession currentSession;
 
@@ -44,6 +47,8 @@ public class StudyController {
 
         // Load flashcards eagerly if needed
         List<Flashcard> cards = flashcardRepository.findByDeck(currentDeck);
+        currentDeck.setCards(cards);
+
 
         StudyAlgorithm algorithm = StudyAlgorithmFactory.createAlgorithm(algorithmStrategy.toLowerCase());
         currentSession = new StudySession(currentDeck, currentUser, algorithm);
@@ -55,8 +60,14 @@ public class StudyController {
         Flashcard flashcard = flashcardRepository.findById(cardId)
                 .orElseThrow(() -> new IllegalArgumentException("Flashcard not found"));
 
-        RatingContext.executeStrategy(flashcard, StrategyFactory.createStrategy(rating));
+        RatingStrategy selectedStrategy = StrategyFactory.createStrategy(rating);
+        selectedStrategy.updateReviewState(flashcard);
         flashcardRepository.save(flashcard); // persist rating changes
+    }
+
+    public FlashcardDTO nextCard(){
+        Flashcard flashCard = currentSession.getNextCardAndRemove();
+        return FlashcardMapper.toDTO(flashCard);    //Data object with readonly functions for the view
     }
 
 }
