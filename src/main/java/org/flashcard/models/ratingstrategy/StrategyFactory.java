@@ -12,7 +12,7 @@ public final class StrategyFactory {        //No inheritance of this class
             case "medium" -> new StrategyMedium();
             case "hard" -> new StrategyHard();
             case "again" -> new StrategyAgain();
-            default -> null;
+            default -> throw new IllegalArgumentException("Unknown rating type: " + difficulty);
         };
     }
     public static List<String> getAllRatingNames(){
