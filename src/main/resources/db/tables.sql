@@ -4,7 +4,7 @@ CREATE TABLE users (
     password TEXT NOT NULL,
     date_created DATE DEFAULT CURRENT_DATE,
     CHECK (char_length(username) BETWEEN 3 AND 20),
-    CHECK (char_length(password) BETWEEN 3 AND 20)
+    CHECK (char_length(password) BETWEEN 3 AND 60)
 );
 
 CREATE TABLE tags (

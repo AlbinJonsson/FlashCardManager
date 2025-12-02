@@ -1,9 +1,14 @@
 package view;
 
+import org.flashcard.controllers.UserController;
+import org.flashcard.models.dataclasses.User;
+
 import javax.swing.*;
 import java.awt.*;
+import java.util.List;
 
 public class FriendsView extends JPanel {
+    private final UserController userController;
     private JButton toggleButton;  // pil
     private JPanel headerPanel;
     private JPanel listPanel; // lista för vänner
@@ -11,11 +16,15 @@ public class FriendsView extends JPanel {
     private boolean isOpen = true;
     private JLabel friendsLabel;
     // Konstruktor
-    public FriendsView() {
+
+    public FriendsView(UserController userController) {
+        this.userController = userController;
         initComponents();
         layoutComponents();
         styleComponents();
         addListeners();
+
+        refreshFriendsList();
     }
 
     private void initComponents(){
@@ -108,6 +117,68 @@ public class FriendsView extends JPanel {
         toggleButton.setBackground(Theme.BG);
         toggleButton.setForeground(Theme.TEXT);
     }
+
+    public void refreshFriendsList() {
+        listPanel.removeAll(); // clear existing entries
+
+        // Fetch all users from controller
+        List<User> users = userController.getAllUsers();
+        User currentUser = userController.getCurrentUser(); // get the currently signed-in user
+
+
+        for (User user : users) {
+            JButton userButton = new JButton(user.getUsername());
+            userButton.setFocusPainted(false);
+            userButton.setContentAreaFilled(false);
+            userButton.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+            userButton.setForeground(Theme.TEXT);
+            userButton.setFont(Theme.NORMAL);
+            userButton.setHorizontalAlignment(SwingConstants.LEFT);
+
+
+            // Make current user bold
+            if (currentUser != null && currentUser.getUsername().equals(user.getUsername())) {
+                userButton.setFont(Theme.NORMAL.deriveFont(Font.BOLD));
+            } else {
+                userButton.setFont(Theme.NORMAL);
+            }
+
+
+
+            // When clicked, "sign in" as this user
+            userButton.addActionListener(e -> {
+                userController.setCurrentUser(user);
+                JOptionPane.showMessageDialog(this,
+                        "You are now signed in as: " + user.getUsername(),
+                        "Signed In",
+                        JOptionPane.INFORMATION_MESSAGE);
+
+            });
+
+            listPanel.add(userButton);
+        }
+
+        listPanel.revalidate();
+        listPanel.repaint();
+    }
+
+    private void openUserProfile(User user) {
+        // Auto-login as this user
+        userController.setCurrentUser(user);
+
+        // Optionally, update UI or navigate to Home
+        JOptionPane.showMessageDialog(this,
+                "You are now signed in as: " + user.getUsername(),
+                "Signed In",
+                JOptionPane.INFORMATION_MESSAGE);
+
+        // For example, hide friends panel or refresh views
+        close();
+    }
+
+
+
+
 
 
 

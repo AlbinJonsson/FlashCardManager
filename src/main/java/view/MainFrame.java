@@ -22,15 +22,25 @@ public class MainFrame extends JFrame {
     private MyAccountView myAccountView;
     private SignInView signInView;
 
-    private JLayeredPane layeredPane;      // transparent overlay container
-    private JPanel overlayLayer;           // semi-transparent overlay
-    private JPanel backgroundPanel;        // REAL background (fixar vit-buggen)
+    private final UserController userController;
+    private final DeckController deckController;
+    private final StudyController studyController;
+
+    private JLayeredPane layeredPane;   // For overlay if needed
+    private JPanel overlayLayer;        // Semi-transparent layer for popups
 
     public MainFrame(UserController userController,
                      StudyController studyController,
                      DeckController deckController) {
+
+        this.userController = userController;
+        this.studyController = studyController;
+        this.deckController = deckController;
+
         initComponents();
         layoutComponents();
+        setNavbarListener();
+
         showPage("Home");
 
         setTitle("Flashcard APP");
@@ -38,7 +48,18 @@ public class MainFrame extends JFrame {
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        setNavbarListener();
+        // LOGIN HANDLER
+        signInView.setOnSignIn((username, password) -> {
+            boolean success = userController.login(username, password);
+
+            if (success) {
+                signInView.showMessage("");   // clear messages
+                signInView.clear();           // clear fields
+                showPage("Home");             // navigate to home
+            } else {
+                signInView.showMessage("Invalid username or password.");
+            }
+        });
     }
 
     private void initComponents() {
@@ -47,20 +68,25 @@ public class MainFrame extends JFrame {
         cardLayout = new CardLayout();
         contentPanel = new JPanel(cardLayout);
         contentPanel.setBackground(Theme.BG);
+        contentPanel.setPreferredSize(new Dimension(800, 600));
+        contentPanel.setBackground(Color.CYAN); // bright color for debugging
 
-        // --------- ALLA VIEWS ---------
+
+        // --------- ALL VIEWS ---------
         homeView = new HomeView();
-        myDecksView = new MyDecksView();
+        myDecksView = new MyDecksView(userController, deckController);
         studyView = new StudyView();
         scheduleView = new ScheduleView();
         myAccountView = new MyAccountView();
         signInView = new SignInView();
 
         navbarView = new NavbarView();
-        friendsView = new FriendsView();
+        friendsView = new FriendsView(userController);
 
+        // Add pages to CardLayout
         contentPanel.add(homeView, "Home");
         contentPanel.add(myDecksView, "MyDecks");
+        contentPanel.add(studyView, "Study");
         contentPanel.add(scheduleView, "Schedule");
         contentPanel.add(myAccountView, "MyAccount");
         contentPanel.add(signInView, "SignIn");
@@ -70,48 +96,60 @@ public class MainFrame extends JFrame {
         overlayLayer.setOpaque(false);
         overlayLayer.setLayout(new BorderLayout());
 
-        // --------- JLayeredPane (TRANSPARENT!) ---------
+        // --------- LAYERED PANE ---------
         layeredPane = new JLayeredPane();
         layeredPane.setLayout(new BorderLayout());
-
-        // Lägg båda i CENTER med korrekt layer
-        layeredPane.add(contentPanel, BorderLayout.CENTER, JLayeredPane.DEFAULT_LAYER);
+        layeredPane.add(contentPanel, BorderLayout.CENTER);
         layeredPane.add(overlayLayer, BorderLayout.CENTER, JLayeredPane.PALETTE_LAYER);
 
-
-        backgroundPanel = new JPanel(new BorderLayout());
-        backgroundPanel.setBackground(Theme.BG);  // ← Detta tar bort vit bakgrund
+        layeredPane.setBackground(Color.GREEN);      // should show up in center
+        contentPanel.setBackground(Color.CYAN);
     }
 
     private void layoutComponents() {
 
         setLayout(new BorderLayout());
 
-        // Navbar alltid högst upp
+        // Navbar at top
         add(navbarView, BorderLayout.NORTH);
 
-        // FriendsView på vänster sida
+        // Friends panel at left
         add(friendsView, BorderLayout.WEST);
 
-        // Lägg layeredPane i backgroundPanel
-        backgroundPanel.add(layeredPane, BorderLayout.CENTER);
-
-        // Lägg backgroundPanel i fönstret
-        add(backgroundPanel, BorderLayout.CENTER);
+        // Main content in center
+        add(layeredPane, BorderLayout.CENTER);
     }
 
     // -------- PAGE SWITCHING --------
     public void showPage(String pageName) {
+        // Show CardLayout page
         cardLayout.show(contentPanel, pageName);
 
-        if ("Schedule".equals(pageName)) {
+        // Hide friends panel for SignIn or Schedule
+        if ("SignIn".equals(pageName) || "Schedule".equals(pageName)) {
             friendsView.setVisible(false);
         } else {
             friendsView.setVisible(true);
         }
 
+        // Highlight navbar button
         navbarView.highlight(pageName);
 
+        // Refresh UI
+
+
+        // Refresh MyDecksView if current page
+        if ("MyDecks".equals(pageName)) {
+            myDecksView.refreshDecksForCurrentUser();
+        }
+
+        friendsView.setVisible(!pageName.equals("Schedule") && !pageName.equals("SignIn"));
+        navbarView.highlight(pageName);
+        revalidate();
+        repaint();
+
+        contentPanel.revalidate();
+        contentPanel.repaint();
         revalidate();
         repaint();
     }

@@ -2,17 +2,18 @@ package view;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.List;
 
 public class HomeView extends JPanel {
+
     protected JPanel headerPanel;
     protected JLabel titleLabel;
-
-    private JPanel decksPanel;
-    private JScrollPane scrollPane;
+    protected JPanel decksPanel;
+    protected JScrollPane scrollPane;
 
     public HomeView() {
-        setOpaque(true);
-        setBackground(Theme.BG);
+        setLayout(new BorderLayout());
+        setBackground(Color.LIGHT_GRAY); // debug background
 
         initComponents();
         layoutComponents();
@@ -20,52 +21,48 @@ public class HomeView extends JPanel {
     }
 
     private void initComponents() {
-        titleLabel = new JLabel("To be Rehearsed today");
-
+        // Header
         headerPanel = new JPanel(new BorderLayout());
-        headerPanel.setOpaque(false);
-        headerPanel.setBackground(Theme.BG);
+        headerPanel.setBackground(Color.WHITE);
+        titleLabel = new JLabel("Home");
+        headerPanel.add(titleLabel, BorderLayout.WEST);
 
+        // Decks container
         decksPanel = new JPanel();
-        decksPanel.setLayout(new GridLayout(0, 3, 20, 20));
+        decksPanel.setLayout(new BoxLayout(decksPanel, BoxLayout.Y_AXIS));
         decksPanel.setOpaque(true);
-        decksPanel.setBackground(Theme.BG);
+        decksPanel.setBackground(Color.CYAN); // debug background
 
-        JPanel decksWrapper = new JPanel(new BorderLayout());
-        decksWrapper.setOpaque(true);
-        decksWrapper.setBackground(Theme.BG);
-        decksWrapper.setBorder(BorderFactory.createEmptyBorder(20,20,20,20));
-        decksWrapper.add(decksPanel, BorderLayout.CENTER);
-
-        scrollPane = new JScrollPane(decksWrapper);
+        scrollPane = new JScrollPane(decksPanel);
         scrollPane.setBorder(null);
-        scrollPane.setOpaque(true);
-        scrollPane.setBackground(Theme.BG);
         scrollPane.getViewport().setOpaque(true);
-        scrollPane.getViewport().setBackground(Theme.BG);
+        scrollPane.getViewport().setBackground(Color.CYAN); // debug
     }
 
-
     private void layoutComponents() {
-        setLayout(new BorderLayout());
-
-        headerPanel.add(titleLabel, BorderLayout.WEST);
-        headerPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 10, 20));
-
         add(headerPanel, BorderLayout.NORTH);
         add(scrollPane, BorderLayout.CENTER);
     }
 
     private void styleComponents() {
-        titleLabel.setFont(Theme.TITLE);
-        titleLabel.setForeground(Theme.TEXT);
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
     }
 
-    public void setDecks(java.util.List<JPanel> deckCards) {
+    // Set decks as list of strings
+    public void setDecks(List<String> deckNames) {
         decksPanel.removeAll();
-        for (JPanel card : deckCards) {
-            decksPanel.add(card);
+        for (String name : deckNames) {
+            JLabel label = new JLabel(name);
+            label.setFont(new Font("Arial", Font.PLAIN, 18));
+            label.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+
+            JPanel wrapper = new JPanel(new BorderLayout());
+            wrapper.setOpaque(false);
+            wrapper.add(label, BorderLayout.CENTER);
+
+            decksPanel.add(wrapper);
         }
+
         decksPanel.revalidate();
         decksPanel.repaint();
     }

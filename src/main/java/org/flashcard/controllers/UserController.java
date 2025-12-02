@@ -10,7 +10,10 @@ import org.springframework.stereotype.Controller;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Transactional
@@ -19,6 +22,7 @@ public class UserController {
     private final UserRepository userRepo;
     private final DeckRepository deckRepo;
     private final TagRepository tagRepo;
+    private User currentUser;
 
     public UserController(UserRepository userRepo,
                        DeckRepository deckRepo,
@@ -28,7 +32,46 @@ public class UserController {
         this.tagRepo = tagRepo;
     }
 
+    public boolean login(String username, String password) {
+        Optional<User> optionalUser = userRepo.findByUsername(username);
+
+        if (optionalUser.isEmpty()) {
+            return false; // user not found
+        }
+
+        User user = optionalUser.get();
+        String hashedInput = hashPassword(password);
+
+        return user.getPassword().equals(hashedInput);
+    }
+
+
+    private String hashPassword(String password) {
+        try {
+            MessageDigest md = MessageDigest.getInstance("SHA-256");
+            byte[] hashed = md.digest(password.getBytes());
+            StringBuilder sb = new StringBuilder();
+            for (byte b : hashed) {
+                sb.append(String.format("%02x", b));
+            }
+            return sb.toString();
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("SHA-256 not supported", e);
+        }
+    }
+
+
+
     // --- User CRUD ---
+
+
+    public void setCurrentUser(User user) {
+        this.currentUser = user;  // auto-login as this user
+    }
+
+    public User getCurrentUser() {
+        return currentUser;
+    }
 
     public User createUser(String username, String password) {
         if (userRepo.existsByUsername(username)) {
