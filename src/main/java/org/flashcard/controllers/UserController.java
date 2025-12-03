@@ -27,7 +27,7 @@ public class UserController {
     private final DeckRepository deckRepo;
     private final TagRepository tagRepo;
 
-    // Håller koll på den inloggade användaren i minnet (Stateful för Desktop-app)
+
     private User currentUser;
 
     public UserController(UserRepository userRepo,
@@ -43,44 +43,40 @@ public class UserController {
     public boolean login(String username, String password) {
         Optional<User> optionalUser = userRepo.findByUsername(username);
 
-        if (optionalUser.isEmpty()) {
-            return false; // Användaren finns inte
+        if (optionalUser.isEmpty()) {   //User does not exist
+            return false;
         }
 
         User user = optionalUser.get();
 
-        // Hasha inmatat lösenord för att jämföra med det lagrade hashet
+
         String hashedInput = hashPassword(password);
 
         if (user.getPassword().equals(hashedInput)) {
-            this.currentUser = user; // VIKTIGT: Sätter den inloggade användaren
+            this.currentUser = user;
             return true;
         }
 
-        return false; // Fel lösenord
+        return false;
     }
 
     public void logout() {
         this.currentUser = null;
     }
 
-    // Hämtar den inloggade användaren som DTO för Vyn
     public UserDTO getCurrentUser() {
         if (currentUser == null) return null;
         return UserMapper.toDTO(currentUser);
     }
 
-    // Hjälpmetod för att få ID (används ofta av andra Controllers/Vyer)
     public Integer getCurrentUserId() {
         return (currentUser != null) ? currentUser.getId() : null;
     }
 
     public void loginByUserId(Integer userId) {
-        // 1. Controllern använder ID:t för att hämta den riktiga Entiteten
         User user = userRepo.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-        // 2. Sätt sessionen
         this.currentUser = user;
     }
 
@@ -105,7 +101,6 @@ public class UserController {
             throw new IllegalArgumentException("Username already exists");
         }
 
-        // VIKTIGT: Hasha lösenordet INNAN vi sparar det!
         String hashedPassword = hashPassword(password);
 
         User user = new User(username, hashedPassword);
@@ -120,7 +115,6 @@ public class UserController {
                 .collect(Collectors.toList());
     }
 
-    // Hämtar Entiteten (används internt eller vid behov)
     public User getUserByIdEntity(Integer userId) {
         return userRepo.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
