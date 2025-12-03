@@ -26,13 +26,15 @@ public class MainFrame extends JFrame {
     private final DeckController deckController;
     private final StudyController studyController;
 
-    private JLayeredPane layeredPane;   // For overlay if needed
-    private JPanel overlayLayer;        // Semi-transparent layer for popups
+    private JLayeredPane layeredPane;
+    private JPanel overlayLayer;
+
+    // NEW: top header bar for each page
+    private JPanel topHeaderBar;
 
     public MainFrame(UserController userController,
                      StudyController studyController,
                      DeckController deckController) {
-
 
         this.userController = userController;
         this.studyController = studyController;
@@ -44,43 +46,20 @@ public class MainFrame extends JFrame {
 
         showPage("Home");
 
-        forceBackgroundRecursively(contentPanel, Theme.BG);
-
-
         setTitle("Flashcard APP");
         setSize(1920, 1080);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
-        // LOGIN HANDLER
-        signInView.setOnSignIn((username, password) -> {
-            boolean success = userController.login(username, password);
-
-            if (success) {
-                signInView.showMessage("");   // clear messages
-                signInView.clear();           // clear fields
-                showPage("Home");             // navigate to home
-            } else {
-                signInView.showMessage("Invalid username or password.");
-            }
-        });
     }
 
     private void initComponents() {
 
-        // --------- CARD LAYOUT PANEL ---------
+        // ---------- MAIN PAGES ----------
         cardLayout = new CardLayout();
-        contentPanel = new JPanel(cardLayout) {
-            @Override
-            public boolean isOpaque() {
-                return true; // Måla bakgrund
-            }
-        };
-        contentPanel.setBackground(Theme.BG);
-        contentPanel.setPreferredSize(new Dimension(800, 600));
+        contentPanel = new JPanel(cardLayout);
+        contentPanel.setBounds(0, 60, 1920, 1020);
+        contentPanel.setOpaque(true);
 
-
-        // --------- ALL VIEWS ---------
         homeView = new HomeView();
         myDecksView = new MyDecksView(userController, deckController);
         studyView = new StudyView();
@@ -88,10 +67,6 @@ public class MainFrame extends JFrame {
         myAccountView = new MyAccountView();
         signInView = new SignInView();
 
-        navbarView = new NavbarView();
-        friendsView = new FriendsView(userController);
-
-        // Lägg till views i CardLayout
         contentPanel.add(homeView, "Home");
         contentPanel.add(myDecksView, "MyDecks");
         contentPanel.add(studyView, "Study");
@@ -99,108 +74,88 @@ public class MainFrame extends JFrame {
         contentPanel.add(myAccountView, "MyAccount");
         contentPanel.add(signInView, "SignIn");
 
+        // ---------- NAVBAR + FRIENDS ----------
+        navbarView = new NavbarView();
+        friendsView = new FriendsView(userController);
 
-        // --------- OVERLAY LAYER ---------
+        // ---------- HEADER BAR (PAGE TITLE + BUTTONS) ----------
+        topHeaderBar = new JPanel(new BorderLayout());
+        topHeaderBar.setPreferredSize(new Dimension(0, 60));
+        topHeaderBar.setBackground(Theme.BG);
+
+        // ---------- LAYEREDPANE ----------
+        layeredPane = new JLayeredPane();
+        layeredPane.setLayout(null);
+
+        contentPanel.setBounds(0, 60, 1920, 1020);   // under header bar
+        layeredPane.add(contentPanel, JLayeredPane.DEFAULT_LAYER);
+
         overlayLayer = new JPanel();
         overlayLayer.setOpaque(false);
-        overlayLayer.setLayout(new BorderLayout());
-
-
-        // --------- LAYERED PANE (DEN VIKTIGASTE FIXEN!) ---------
-        layeredPane = new JLayeredPane() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                g.setColor(Theme.BG);      // Tvingar bakgrundsfärg
-                g.fillRect(0, 0, getWidth(), getHeight());
-            }
-        };
-        layeredPane.setLayout(new BorderLayout());
-
-        layeredPane.add(contentPanel, BorderLayout.CENTER);
-        layeredPane.add(overlayLayer, BorderLayout.CENTER, JLayeredPane.PALETTE_LAYER);
-
-        // Detta behövs inte längre men är okej att ha:
-        layeredPane.setBackground(Theme.BG);
+        overlayLayer.setBounds(0, 0, 1920, 1080);
+        layeredPane.add(overlayLayer, JLayeredPane.PALETTE_LAYER);
     }
-
-
 
 
     private void layoutComponents() {
 
         setLayout(new BorderLayout());
 
-        // Navbar at top
+        // navbar högst upp
         add(navbarView, BorderLayout.NORTH);
 
-        // Friends panel at left
+        // friends till vänster
         add(friendsView, BorderLayout.WEST);
 
-        // --- IMPORTANT FIX WRAPPER ---
+        // center (ALLA pages ligger i cardLayout inuti contentPanel)
         JPanel centerWrapper = new JPanel(new BorderLayout());
         centerWrapper.setOpaque(true);
         centerWrapper.setBackground(Theme.BG);
-        centerWrapper.add(layeredPane, BorderLayout.CENTER);
 
-        // Main content in center
+        centerWrapper.add(contentPanel, BorderLayout.CENTER);
+
         add(centerWrapper, BorderLayout.CENTER);
     }
 
 
-    // -------- PAGE SWITCHING --------
+
+    // -------- CHANGE PAGE --------
     public void showPage(String pageName) {
-        System.out.println("Switching to page: " + pageName);
-
-        // Show CardLayout page
-        cardLayout.show(contentPanel, pageName);
-
-        // Hide friends panel for SignIn or Schedule
-        if ("SignIn".equals(pageName) || "Schedule".equals(pageName)) {
-            friendsView.setVisible(false);
-        } else {
-            friendsView.setVisible(true);
-        }
-
-        // Highlight navbar button
-        navbarView.highlight(pageName);
-
-        // Refresh UI
-
-
-        // Refresh MyDecksView if current page
-        if ("MyDecks".equals(pageName)) {
+        if (pageName.equals("MyDecks")) {
             myDecksView.refreshDecksForCurrentUser();
         }
 
-        friendsView.setVisible(!pageName.equals("Schedule") && !pageName.equals("SignIn"));
+        cardLayout.show(contentPanel, pageName);
         navbarView.highlight(pageName);
-        revalidate();
-        repaint();
-
-        contentPanel.revalidate();
-        contentPanel.repaint();
-        revalidate();
-        repaint();
     }
 
+
+
     private void setNavbarListener() {
+
         navbarView.setOnNavigate(this::showPage);
+
         navbarView.setOnSearch(text -> {
             Integer userId = userController.getLoggedInUserId();
-
             var results = deckController.searchDecks(userId, text);
-
             homeView.setDecks(results);
         });
 
-
+        signInView.setOnSignIn((username, password) -> {
+            boolean success = userController.login(username, password);
+            if (success) {
+                signInView.clear();
+                showPage("Home");
+            } else {
+                signInView.showMessage("Invalid username or password.");
+            }
+        });
     }
 
-    // -------- OVERLAY CONTROL (popup blur etc.) --------
-    public void showOverlay(Color transparentDark) {
+
+    public void showOverlay(Color col) {
         overlayLayer.setOpaque(true);
-        overlayLayer.setBackground(transparentDark);
+        overlayLayer.setBackground(col);
         overlayLayer.repaint();
     }
 
@@ -208,19 +163,4 @@ public class MainFrame extends JFrame {
         overlayLayer.setOpaque(false);
         overlayLayer.repaint();
     }
-
-    // Force background color recursively on all components
-    private void forceBackgroundRecursively(Component comp, Color bg) {
-        if (comp instanceof JComponent j) {
-            j.setOpaque(true);
-            j.setBackground(bg);
-        }
-
-        if (comp instanceof Container container) {
-            for (Component child : container.getComponents()) {
-                forceBackgroundRecursively(child, bg);
-            }
-        }
-    }
-
 }

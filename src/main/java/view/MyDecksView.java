@@ -11,41 +11,41 @@ import java.util.stream.Collectors;
 
 public class MyDecksView extends HomeView {
 
-    private JButton editButton;
     private final UserController userController;
     private final DeckController deckController;
+    private JButton editButton;
 
     public MyDecksView(UserController userController, DeckController deckController) {
-        super();  // bygger HomeView
+        super();  // bygger headerPanel + titleLabel + scroll
 
         this.userController = userController;
         this.deckController = deckController;
 
-        editButton = new JButton("Edit Decks");
+        // ändra rubriken i headern
+        titleLabel.setText("My Decks");
 
-        addEditButton();
-        styleButton();
+        // skapa knappen och lägg den i headerPanel, till höger
+        initEditButton();
     }
 
-    private void addEditButton() {
+    private void initEditButton() {
+        editButton = new JButton("Edit decks");
+        editButton.setFocusPainted(false);
+        editButton.setOpaque(true);
+        editButton.setBackground(Color.WHITE);
+        editButton.setForeground(Color.BLACK);
+        editButton.setFont(Theme.NORMAL);
+        editButton.setPreferredSize(new Dimension(120, 32));
 
-        JPanel editPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 10));
-        editPanel.setOpaque(false);
+        JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 20, 10));
+        rightPanel.setOpaque(false);
+        rightPanel.add(editButton);
 
-        editButton.setPreferredSize(new Dimension(130, 35));
-        editPanel.add(editButton);
-
-        headerPanel.add(editPanel, BorderLayout.EAST);
+        // **Samma headerPanel som titelLabel**
+        headerPanel.add(rightPanel, BorderLayout.EAST);
 
         headerPanel.revalidate();
         headerPanel.repaint();
-    }
-
-    private void styleButton() {
-        editButton.setFocusPainted(false);
-        editButton.setBackground(Color.WHITE);
-        editButton.setForeground(Color.BLACK);
-        editButton.setOpaque(true);
     }
 
     public void refreshDecksForCurrentUser() {
@@ -56,7 +56,6 @@ public class MyDecksView extends HomeView {
         }
 
         List<Deck> decks = deckController.getDecksForUser(currentUser.getId());
-
         List<String> names = decks.stream()
                 .map(Deck::getTitle)
                 .collect(Collectors.toList());
