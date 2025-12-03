@@ -11,7 +11,7 @@ public class Observable<T> {
 
     public void notify(T data) {
         for (Observer<T> l : listeners) {
-            l.notify(data);
+            l.update(data);
         }
     }
 }

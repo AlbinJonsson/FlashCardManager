@@ -1,13 +1,14 @@
 package view;
 
 import org.flashcard.controllers.UserController;
+import org.flashcard.models.Observer;
 import org.flashcard.models.dataclasses.User;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.List;
 
-public class FriendsView extends JPanel {
+public class FriendsView extends JPanel implements Observer {
     private final UserController userController;
     private JButton toggleButton;  // pil
     private JPanel headerPanel;
@@ -177,9 +178,8 @@ public class FriendsView extends JPanel {
     }
 
 
+    @Override
+    public void update(Object data) {
 
-
-
-
-
+    }
 }

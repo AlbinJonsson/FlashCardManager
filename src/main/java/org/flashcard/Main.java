@@ -8,6 +8,7 @@ import org.flashcard.models.dataclasses.User;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationContext;
+import view.BossFrame;
 import view.MainFrame;
 import view.TestFrame;
 
@@ -30,7 +31,8 @@ public class Main {
 
 
             //MainFrame frame = new MainFrame(userController, studyController, deckController);
-            TestFrame frame = new TestFrame(userController, studyController, deckController);
+            //TestFrame frame = new TestFrame(userController, studyController, deckController);
+            BossFrame frame = new BossFrame(userController, studyController, deckController);
             frame.setVisible(true);
 
 

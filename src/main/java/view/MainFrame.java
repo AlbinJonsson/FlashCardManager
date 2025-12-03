@@ -157,6 +157,9 @@ public class MainFrame extends JFrame {
     private void setNavbarListener() {
         navbarView.setOnNavigate(this::showPage);
     }
+    private void setButtonListener() {
+
+    }
 
     // -------- OVERLAY CONTROL (popup blur etc.) --------
     public void showOverlay(Color transparentDark) {

@@ -30,6 +30,7 @@ public class DeckController {
         this.flashcardRepo = flashcardRepo;
         this.userRepo = userRepo;
         this.tagRepo = tagRepo;
+
     }
 
     // --- Deck CRUD ---
@@ -46,8 +47,9 @@ public class DeckController {
 
         Deck deck = new Deck(title, user);
         deck.setTag(tag);
+        deckRepo.save(deck);
 
-        return deckRepo.save(deck);
+        return deck;
     }
 
     public List<Deck> getDecksForUser(Integer userId) {
