@@ -9,6 +9,7 @@ public class Theme {
     public static final Color CARD_BG = new Color(255,255,255);
     public static final Color TEXT = new Color(255,255,255);
     public static final Color BORDER = new Color(255, 255, 255, 255);
+    public static final Color WHITE = new Color(255, 255, 255, 255);
 
     public static final Font TITLE = new Font("SansSerif", Font.BOLD, 18);
     public static final Font NORMAL = new Font("SansSerif", Font.PLAIN, 14);

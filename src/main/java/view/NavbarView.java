@@ -48,7 +48,7 @@ public class NavbarView extends JPanel {
         scheduleBtn = new JButton("Schedule");
         signinBtn = new JButton("Sign In");
 
-        searchBox = new SearchBar("Search ", 260); // width 200px
+        searchBox = new SearchBar("Search ", 280); // width 200px
 
         leftPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 15,10));
         leftPanel.setOpaque(false);

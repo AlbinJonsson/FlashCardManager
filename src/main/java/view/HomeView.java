@@ -13,7 +13,7 @@ public class HomeView extends JPanel {
 
     public HomeView() {
         setLayout(new BorderLayout());
-        setBackground(Color.LIGHT_GRAY); // debug background
+        setBackground(Theme.BG);
 
         initComponents();
         layoutComponents();
@@ -21,22 +21,28 @@ public class HomeView extends JPanel {
     }
 
     private void initComponents() {
-        // Header
+
         headerPanel = new JPanel(new BorderLayout());
-        headerPanel.setBackground(Color.WHITE);
+        headerPanel.setOpaque(true);
+        headerPanel.setBackground(Theme.BG);
+        headerPanel.setPreferredSize(new Dimension(0, 60));
+
         titleLabel = new JLabel("Home");
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
+        titleLabel.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 10));
+
         headerPanel.add(titleLabel, BorderLayout.WEST);
 
-        // Decks container
         decksPanel = new JPanel();
         decksPanel.setLayout(new BoxLayout(decksPanel, BoxLayout.Y_AXIS));
         decksPanel.setOpaque(true);
-        decksPanel.setBackground(Color.CYAN); // debug background
+        decksPanel.setBackground(Theme.BG);
 
         scrollPane = new JScrollPane(decksPanel);
         scrollPane.setBorder(null);
-        scrollPane.getViewport().setOpaque(true);
-        scrollPane.getViewport().setBackground(Color.CYAN); // debug
+        scrollPane.setOpaque(false);
+        scrollPane.getViewport().setOpaque(false);
+        scrollPane.getViewport().setBackground(Theme.BG);
     }
 
     private void layoutComponents() {
@@ -48,7 +54,6 @@ public class HomeView extends JPanel {
         titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
     }
 
-    // Set decks as list of strings
     public void setDecks(List<String> deckNames) {
         decksPanel.removeAll();
         for (String name : deckNames) {
@@ -62,7 +67,6 @@ public class HomeView extends JPanel {
 
             decksPanel.add(wrapper);
         }
-
         decksPanel.revalidate();
         decksPanel.repaint();
     }

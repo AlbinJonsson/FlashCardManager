@@ -33,6 +33,7 @@ public class MainFrame extends JFrame {
                      StudyController studyController,
                      DeckController deckController) {
 
+
         this.userController = userController;
         this.studyController = studyController;
         this.deckController = deckController;
@@ -42,6 +43,9 @@ public class MainFrame extends JFrame {
         setNavbarListener();
 
         showPage("Home");
+
+        forceBackgroundRecursively(contentPanel, Theme.BG);
+
 
         setTitle("Flashcard APP");
         setSize(1920, 1080);
@@ -66,10 +70,14 @@ public class MainFrame extends JFrame {
 
         // --------- CARD LAYOUT PANEL ---------
         cardLayout = new CardLayout();
-        contentPanel = new JPanel(cardLayout);
+        contentPanel = new JPanel(cardLayout) {
+            @Override
+            public boolean isOpaque() {
+                return true; // Måla bakgrund
+            }
+        };
         contentPanel.setBackground(Theme.BG);
         contentPanel.setPreferredSize(new Dimension(800, 600));
-        contentPanel.setBackground(Color.CYAN); // bright color for debugging
 
 
         // --------- ALL VIEWS ---------
@@ -83,7 +91,7 @@ public class MainFrame extends JFrame {
         navbarView = new NavbarView();
         friendsView = new FriendsView(userController);
 
-        // Add pages to CardLayout
+        // Lägg till views i CardLayout
         contentPanel.add(homeView, "Home");
         contentPanel.add(myDecksView, "MyDecks");
         contentPanel.add(studyView, "Study");
@@ -91,20 +99,33 @@ public class MainFrame extends JFrame {
         contentPanel.add(myAccountView, "MyAccount");
         contentPanel.add(signInView, "SignIn");
 
+
         // --------- OVERLAY LAYER ---------
         overlayLayer = new JPanel();
         overlayLayer.setOpaque(false);
         overlayLayer.setLayout(new BorderLayout());
 
-        // --------- LAYERED PANE ---------
-        layeredPane = new JLayeredPane();
+
+        // --------- LAYERED PANE (DEN VIKTIGASTE FIXEN!) ---------
+        layeredPane = new JLayeredPane() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                g.setColor(Theme.BG);      // Tvingar bakgrundsfärg
+                g.fillRect(0, 0, getWidth(), getHeight());
+            }
+        };
         layeredPane.setLayout(new BorderLayout());
+
         layeredPane.add(contentPanel, BorderLayout.CENTER);
         layeredPane.add(overlayLayer, BorderLayout.CENTER, JLayeredPane.PALETTE_LAYER);
 
-        layeredPane.setBackground(Color.GREEN);      // should show up in center
-        contentPanel.setBackground(Color.CYAN);
+        // Detta behövs inte längre men är okej att ha:
+        layeredPane.setBackground(Theme.BG);
     }
+
+
+
 
     private void layoutComponents() {
 
@@ -116,12 +137,21 @@ public class MainFrame extends JFrame {
         // Friends panel at left
         add(friendsView, BorderLayout.WEST);
 
+        // --- IMPORTANT FIX WRAPPER ---
+        JPanel centerWrapper = new JPanel(new BorderLayout());
+        centerWrapper.setOpaque(true);
+        centerWrapper.setBackground(Theme.BG);
+        centerWrapper.add(layeredPane, BorderLayout.CENTER);
+
         // Main content in center
-        add(layeredPane, BorderLayout.CENTER);
+        add(centerWrapper, BorderLayout.CENTER);
     }
+
 
     // -------- PAGE SWITCHING --------
     public void showPage(String pageName) {
+        System.out.println("Switching to page: " + pageName);
+
         // Show CardLayout page
         cardLayout.show(contentPanel, pageName);
 
@@ -178,4 +208,19 @@ public class MainFrame extends JFrame {
         overlayLayer.setOpaque(false);
         overlayLayer.repaint();
     }
+
+    // Force background color recursively on all components
+    private void forceBackgroundRecursively(Component comp, Color bg) {
+        if (comp instanceof JComponent j) {
+            j.setOpaque(true);
+            j.setBackground(bg);
+        }
+
+        if (comp instanceof Container container) {
+            for (Component child : container.getComponents()) {
+                forceBackgroundRecursively(child, bg);
+            }
+        }
+    }
+
 }

@@ -16,33 +16,38 @@ public class MyDecksView extends HomeView {
     private final DeckController deckController;
 
     public MyDecksView(UserController userController, DeckController deckController) {
-        super();
+        super();  // bygger HomeView
+
         this.userController = userController;
         this.deckController = deckController;
 
         editButton = new JButton("Edit Decks");
-        addExtras();
-        styleExtras();
+
+        addEditButton();
+        styleButton();
     }
 
-    private void addExtras() {
-        titleLabel.setText("My Decks");
+    private void addEditButton() {
 
-        JPanel editPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        JPanel editPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 10));
         editPanel.setOpaque(false);
+
+        editButton.setPreferredSize(new Dimension(130, 35));
         editPanel.add(editButton);
 
         headerPanel.add(editPanel, BorderLayout.EAST);
-        headerPanel.setBackground(Color.WHITE);
+
+        headerPanel.revalidate();
+        headerPanel.repaint();
     }
 
-    private void styleExtras() {
-        editButton.setBackground(new Color(230, 230, 230));
-        editButton.setForeground(Color.BLACK);
+    private void styleButton() {
         editButton.setFocusPainted(false);
+        editButton.setBackground(Color.WHITE);
+        editButton.setForeground(Color.BLACK);
+        editButton.setOpaque(true);
     }
 
-    // Refresh decks for current user
     public void refreshDecksForCurrentUser() {
         var currentUser = userController.getCurrentUser();
         if (currentUser == null) {
@@ -52,13 +57,10 @@ public class MyDecksView extends HomeView {
 
         List<Deck> decks = deckController.getDecksForUser(currentUser.getId());
 
-        // Convert to simple strings
-        List<String> deckNames = decks.stream()
+        List<String> names = decks.stream()
                 .map(Deck::getTitle)
                 .collect(Collectors.toList());
 
-        setDecks(deckNames);
-
-        System.out.println("Decks for user " + currentUser.getUsername() + ": " + deckNames);
+        setDecks(names);
     }
 }
