@@ -29,8 +29,8 @@ public class Main {
             StudyController studyController = context.getBean(StudyController.class);
 
 
-            //MainFrame frame = new MainFrame(userController, studyController, deckController);
-            TestFrame frame = new TestFrame(userController, studyController, deckController);
+            MainFrame frame = new MainFrame(userController, studyController, deckController);
+            //TestFrame frame = new TestFrame(userController, studyController, deckController);
             frame.setVisible(true);
 
 

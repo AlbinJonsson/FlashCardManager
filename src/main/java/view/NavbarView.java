@@ -1,7 +1,10 @@
 package view;
 
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import java.awt.*;
+import java.util.function.Consumer;
 
 public class NavbarView extends JPanel {
     NavigationListener listener;
@@ -15,7 +18,9 @@ public class NavbarView extends JPanel {
 
 
     // Search box
-    private SearchBarView searchBox;
+    private SearchBar searchBox; // första ändringen
+
+
 
     // panels for layout
     private JPanel leftPanel;
@@ -25,7 +30,7 @@ public class NavbarView extends JPanel {
     public NavbarView(){
         setLayout(new BorderLayout());
         setBackground(Theme.NAV_BG);
-        setPreferredSize(new Dimension(0, 60));
+        setPreferredSize(new Dimension(0, 70));
 
         initComponents();
         layoutComponents();
@@ -43,7 +48,7 @@ public class NavbarView extends JPanel {
         scheduleBtn = new JButton("Schedule");
         signinBtn = new JButton("Sign In");
 
-        searchBox = new SearchBarView(200,10); // width 200px
+        searchBox = new SearchBar("Search ", 260); // width 200px
 
         leftPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 15,10));
         leftPanel.setOpaque(false);
@@ -61,7 +66,11 @@ public class NavbarView extends JPanel {
         rightPanel.add(signinBtn);
 
         // add search box to center panel
+        
+
         centerPanel.add(searchBox);
+
+
 
         //add panels to navbar layout
         add(leftPanel, BorderLayout.WEST);
@@ -108,7 +117,7 @@ public class NavbarView extends JPanel {
         styleButton(signinBtn);
 
         // Style search box
-        searchBox.applyTheme(Theme.TEXT, Theme.NAV_BG);
+        //searchBox.applyTheme(Theme.TEXT, Theme.NAV_BG);
 
         // borderline at bottom of navbar
         setBorder(BorderFactory.createMatteBorder(0, 0, 2, 0, Theme.BORDER));
@@ -136,6 +145,15 @@ public class NavbarView extends JPanel {
         scheduleBtn.setFont(Theme.NORMAL);
         signinBtn.setFont(Theme.NORMAL);
     }
+
+    public void setOnSearch(Consumer<String> callback) {
+        searchBox.getField().getDocument().addDocumentListener(new DocumentListener() {
+            @Override public void insertUpdate(DocumentEvent e) { callback.accept(searchBox.getText()); }
+            @Override public void removeUpdate(DocumentEvent e) { callback.accept(searchBox.getText()); }
+            @Override public void changedUpdate(DocumentEvent e) { callback.accept(searchBox.getText()); }
+        });
+    }
+
 
 
 }

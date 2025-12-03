@@ -114,4 +114,23 @@ public class DeckController {
         }
         flashcardRepo.deleteById(cardId);
     }
+
+    public List<String> searchDecks(Integer userId, String query) {
+        if (query == null || query.isBlank()) {
+            return getDecksForUser(userId)
+                    .stream()
+                    .map(Deck::getTitle)
+                    .toList();
+        }
+
+        String lower = query.toLowerCase();
+
+        return getDecksForUser(userId)
+                .stream()
+                .filter(deck -> deck.getTitle().toLowerCase().contains(lower))
+                .map(Deck::getTitle)
+                .toList();
+    }
+
+
 }

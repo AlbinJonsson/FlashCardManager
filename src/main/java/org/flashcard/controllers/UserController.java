@@ -132,4 +132,10 @@ public class UserController {
                 .map(tag -> "Tag: " + tag.getTitle() + ", Color: #" + tag.getColor())
                 .orElse("");
     }
+
+    // Placeholder for getting logged-in user ID
+    // Method is not completed ???
+    public Integer getLoggedInUserId() {
+        return null;
+    }
 }

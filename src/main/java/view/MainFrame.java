@@ -156,6 +156,15 @@ public class MainFrame extends JFrame {
 
     private void setNavbarListener() {
         navbarView.setOnNavigate(this::showPage);
+        navbarView.setOnSearch(text -> {
+            Integer userId = userController.getLoggedInUserId();
+
+            var results = deckController.searchDecks(userId, text);
+
+            homeView.setDecks(results);
+        });
+
+
     }
 
     // -------- OVERLAY CONTROL (popup blur etc.) --------
