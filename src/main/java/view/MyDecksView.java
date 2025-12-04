@@ -1,30 +1,18 @@
 package view;
 
-import org.flashcard.controllers.DeckController;
-import org.flashcard.controllers.UserController;
-import org.flashcard.models.dataclasses.Deck;
+import org.flashcard.UiControllers.dto.DeckDTO;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class MyDecksView extends HomeView {
 
-    private final UserController userController;
-    private final DeckController deckController;
     private JButton editButton;
 
-    public MyDecksView(UserController userController, DeckController deckController) {
-        super();  // bygger headerPanel + titleLabel + scroll
-
-        this.userController = userController;
-        this.deckController = deckController;
-
-        // ändra rubriken i headern
+    public MyDecksView() {
+        super();
         titleLabel.setText("My Decks");
-
-        // skapa knappen och lägg den i headerPanel, till höger
         initEditButton();
     }
 
@@ -33,32 +21,26 @@ public class MyDecksView extends HomeView {
         editButton.setFocusPainted(false);
         editButton.setOpaque(true);
 
-        // --- STYLE ---
-        editButton.setBackground(new Color(245, 245, 245)); // mjukare vit / light grey
+        editButton.setBackground(new Color(245, 245, 245));
         editButton.setForeground(Color.BLACK);
         editButton.setFont(Theme.NORMAL);
 
         editButton.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(200,200,200), 1, true),  // rundad lätt kant
-                BorderFactory.createEmptyBorder(6, 14, 6, 14)  // padding
+                BorderFactory.createLineBorder(new Color(200, 200, 200), 1, true),
+                BorderFactory.createEmptyBorder(6, 14, 6, 14)
         ));
 
-        editButton.setPreferredSize(new Dimension(130, 36)); // lite större & elegantare
+        editButton.setPreferredSize(new Dimension(130, 36));
 
-        // --- HOVER EFFEKT ---
         editButton.addMouseListener(new java.awt.event.MouseAdapter() {
-            @Override
             public void mouseEntered(java.awt.event.MouseEvent e) {
                 editButton.setBackground(new Color(235, 235, 235));
             }
-
-            @Override
             public void mouseExited(java.awt.event.MouseEvent e) {
                 editButton.setBackground(new Color(245, 245, 245));
             }
         });
 
-        // Right panel (din kod)
         JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 20, 10));
         rightPanel.setOpaque(false);
         rightPanel.add(editButton);
@@ -68,19 +50,29 @@ public class MyDecksView extends HomeView {
         headerPanel.repaint();
     }
 
+    // --- UI-CONTROLLER CALLS THIS ---
+    public void updateDeckCards(List<DeckDTO> decks) {
+        decksPanel.removeAll();
 
-    public void refreshDecksForCurrentUser() {
-        var currentUser = userController.getCurrentUser();
-        if (currentUser == null) {
-            setDecks(List.of());
-            return;
+        for (DeckDTO dto : decks) {
+            DeckCard card = new DeckCard();
+
+            card.setCardData(
+                    dto.cardCount(),
+                    dto.trophyCount(),
+                    dto.title(),
+                    dto.tagTitle(),
+                    dto.tagColor()
+            );
+
+            JPanel wrap = new JPanel(new FlowLayout(FlowLayout.LEFT, 20, 20));
+            wrap.setOpaque(false);
+            wrap.add(card);
+
+            decksPanel.add(wrap);
         }
 
-        List<Deck> decks = deckController.getDecksForUser(currentUser.getId());
-        List<String> names = decks.stream()
-                .map(Deck::getTitle)
-                .collect(Collectors.toList());
-
-        setDecks(names);
+        decksPanel.revalidate();
+        decksPanel.repaint();
     }
 }

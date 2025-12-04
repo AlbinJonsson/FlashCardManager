@@ -38,15 +38,12 @@ public class SignInView extends JPanel {
     }
 
     private void layoutComponents() {
-
-        //  skapar en intern panel som INTE får expandera
-        JPanel formPanel = new JPanel();
-        formPanel.setLayout(new GridBagLayout());
+        JPanel formPanel = new JPanel(new GridBagLayout());
         formPanel.setOpaque(false);
 
         GridBagConstraints f = new GridBagConstraints();
         f.insets = new Insets(10, 10, 10, 10);
-        f.fill = GridBagConstraints.NONE;  //
+        f.fill = GridBagConstraints.NONE;
         f.anchor = GridBagConstraints.WEST;
         f.gridx = 0;
 
@@ -71,25 +68,23 @@ public class SignInView extends JPanel {
         f.gridy = 5;
         formPanel.add(messageLabel, f);
 
-        //  lägger vi hela formPanel centrerad i SignInView
         GridBagConstraints main = new GridBagConstraints();
         main.gridx = 0;
         main.gridy = 0;
         main.weightx = 1;
         main.weighty = 1;
         main.anchor = GridBagConstraints.CENTER;
-        main.fill = GridBagConstraints.NONE;
 
         add(formPanel, main);
     }
 
     private void addListeners() {
         signInButton.addActionListener(e -> {
-            String username = usernameField.getText().trim();
-            String password = new String(passwordField.getPassword()).trim();
-
             if (onSignIn != null) {
-                onSignIn.accept(username, password);
+                onSignIn.accept(
+                        usernameField.getText().trim(),
+                        new String(passwordField.getPassword()).trim()
+                );
             }
         });
     }

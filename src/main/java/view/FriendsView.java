@@ -1,6 +1,5 @@
 package view;
 
-import org.flashcard.controllers.UserController;
 import org.flashcard.models.dataclasses.User;
 
 import javax.swing.*;
@@ -8,178 +7,118 @@ import java.awt.*;
 import java.util.List;
 
 public class FriendsView extends JPanel {
-    private final UserController userController;
-    private JButton toggleButton;  // pil
+
+    private JButton toggleButton;
     private JPanel headerPanel;
-    private JPanel listPanel; // lista för vänner
+    private JPanel listPanel;
     private JScrollPane scrollPane;
     private boolean isOpen = true;
     private JLabel friendsLabel;
-    // Konstruktor
 
-    public FriendsView(UserController userController) {
-        this.userController = userController;
+    private List<User> userList = List.of();
+    private User currentUser;
+
+    public FriendsView() {
         initComponents();
         layoutComponents();
         styleComponents();
         addListeners();
-
-        refreshFriendsList();
     }
 
-    private void initComponents(){
-
-        // PILKNAPP
+    private void initComponents() {
         toggleButton = new JButton("⮜");
         toggleButton.setFocusPainted(false);
         toggleButton.setBorder(null);
 
-        // TEXT: "Friends"
         friendsLabel = new JLabel("Friends");
         friendsLabel.setForeground(Theme.TEXT);
         friendsLabel.setFont(Theme.MEDIUM);
         friendsLabel.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 60));
 
-        // HEADER (Friends + Pil)
         headerPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 5));
         headerPanel.setOpaque(false);
-
-        headerPanel.add(friendsLabel);    // <-- FIX
+        headerPanel.add(friendsLabel);
         headerPanel.add(toggleButton);
 
-        // LIST PANEL
         listPanel = new JPanel();
         listPanel.setLayout(new BoxLayout(listPanel, BoxLayout.Y_AXIS));
         listPanel.setOpaque(false);
 
-        // SCROLL
         scrollPane = new JScrollPane(listPanel);
         scrollPane.setBorder(null);
         scrollPane.setOpaque(false);
         scrollPane.getViewport().setOpaque(false);
     }
 
-
     private void layoutComponents() {
         setLayout(new BorderLayout());
         add(headerPanel, BorderLayout.NORTH);
         add(scrollPane, BorderLayout.CENTER);
 
-        // BorderLine för att separera vänsterpanelen
         setBorder(BorderFactory.createMatteBorder(0, 0, 0, 2, Theme.BORDER));
         setPreferredSize(new Dimension(175, getPreferredSize().height));
     }
 
-    // Add Listeners för att öppna/stänga friendspanelen
-    // i FriendsView (klassnivå)
-    public void addListeners() {
+    private void addListeners() {
         toggleButton.addActionListener(e -> {
             if (isOpen) close(); else open();
         });
     }
 
-    // publika metoder för att öppna/stänga (lägg i FriendsView)
-    public void open() {
-        isOpen = true;
-        toggleButton.setText("⮜");
-
-        listPanel.setVisible(true);
-        friendsLabel.setVisible(true);
-
-        // Expand panelen igen
-        setPreferredSize(new Dimension(175, getHeight()));
-
-        revalidate();
-        repaint();
+    public void onUserChanged(User user) {
+        this.currentUser = user;
+        refreshFriendsList();  // uppdatera UI när user ändras
     }
 
-    public void close() {
-        isOpen = false;
-        toggleButton.setText("⮞");
-
-        listPanel.setVisible(false);
-        friendsLabel.setVisible(false);
-
-        // Collapse panelen visuellt!
-        setPreferredSize(new Dimension(25, getHeight()));
-
-        revalidate();
-        repaint();
+    public void setUsers(List<User> users) {
+        this.userList = users;
+        refreshFriendsList();
     }
 
+    private void refreshFriendsList() {
+        listPanel.removeAll();
 
-    public boolean isOpen() { return isOpen; }
+        for (User u : userList) {
+            JButton b = new JButton(u.getUsername());
+            b.setFocusPainted(false);
+            b.setContentAreaFilled(false);
+            b.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+            b.setForeground(Theme.TEXT);
+            b.setFont(Theme.NORMAL);
+            b.setHorizontalAlignment(SwingConstants.LEFT);
 
-
-    // Style components
-    public void styleComponents() {
-        setBackground(Theme.BG);
-        toggleButton.setBackground(Theme.BG);
-        toggleButton.setForeground(Theme.TEXT);
-    }
-
-    public void refreshFriendsList() {
-        listPanel.removeAll(); // clear existing entries
-
-        // Fetch all users from controller
-        List<User> users = userController.getAllUsers();
-        User currentUser = userController.getCurrentUser(); // get the currently signed-in user
-
-
-        for (User user : users) {
-            JButton userButton = new JButton(user.getUsername());
-            userButton.setFocusPainted(false);
-            userButton.setContentAreaFilled(false);
-            userButton.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-            userButton.setForeground(Theme.TEXT);
-            userButton.setFont(Theme.NORMAL);
-            userButton.setHorizontalAlignment(SwingConstants.LEFT);
-
-
-            // Make current user bold
-            if (currentUser != null && currentUser.getUsername().equals(user.getUsername())) {
-                userButton.setFont(Theme.NORMAL.deriveFont(Font.BOLD));
-            } else {
-                userButton.setFont(Theme.NORMAL);
+            if (currentUser != null && currentUser.getId().equals(u.getId())) {
+                b.setFont(Theme.NORMAL.deriveFont(Font.BOLD));
             }
 
-
-
-            // When clicked, "sign in" as this user
-            userButton.addActionListener(e -> {
-                userController.setCurrentUser(user);
-                JOptionPane.showMessageDialog(this,
-                        "You are now signed in as: " + user.getUsername(),
-                        "Signed In",
-                        JOptionPane.INFORMATION_MESSAGE);
-
-            });
-
-            listPanel.add(userButton);
+            listPanel.add(b);
         }
 
         listPanel.revalidate();
         listPanel.repaint();
     }
 
-    private void openUserProfile(User user) {
-        // Auto-login as this user
-        userController.setCurrentUser(user);
-
-        // Optionally, update UI or navigate to Home
-        JOptionPane.showMessageDialog(this,
-                "You are now signed in as: " + user.getUsername(),
-                "Signed In",
-                JOptionPane.INFORMATION_MESSAGE);
-
-        // For example, hide friends panel or refresh views
-        close();
+    public void open() {
+        isOpen = true;
+        toggleButton.setText("⮜");
+        listPanel.setVisible(true);
+        friendsLabel.setVisible(true);
+        setPreferredSize(new Dimension(175, getHeight()));
     }
 
+    public void close() {
+        isOpen = false;
+        toggleButton.setText("⮞");
+        listPanel.setVisible(false);
+        friendsLabel.setVisible(false);
+        setPreferredSize(new Dimension(25, getHeight()));
+    }
 
+    public boolean isOpen() { return isOpen; }
 
-
-
-
-
+    private void styleComponents() {
+        setBackground(Theme.BG);
+        toggleButton.setBackground(Theme.BG);
+        toggleButton.setForeground(Theme.TEXT);
+    }
 }
