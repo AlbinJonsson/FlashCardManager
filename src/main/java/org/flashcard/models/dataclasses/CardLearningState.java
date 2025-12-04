@@ -29,6 +29,12 @@ public class CardLearningState {
         this.numberOfTimesViewed = 0;
     }
 
+    public void updateDates(long daysToAdd) {
+        this.lastReviewDate = LocalDate.now();
+        this.nextReviewDate = LocalDate.now().plusDays(daysToAdd);
+        this.numberOfTimesViewed++;
+    }
+
     // Getters and setters
     public Integer getFlashcardId() { return flashcardId; }
     public void setFlashcardId(Integer flashcardId) { this.flashcardId = flashcardId; }

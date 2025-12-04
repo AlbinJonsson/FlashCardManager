@@ -66,4 +66,5 @@ public class Flashcard {
     public String toString() {
         return "Flashcard{id=" + id + ", front='" + front + "', back='" + back + "', deck=" + deck.getId() + "}";
     }
+
 }

@@ -1,6 +1,10 @@
 package view;
 
 import org.flashcard.UiControllers.dto.DeckDTO;
+import org.flashcard.application.dto.DeckDTO;
+import org.flashcard.controllers.DeckController;
+import org.flashcard.controllers.UserController;
+import org.flashcard.models.dataclasses.Deck;
 
 import javax.swing.*;
 import java.awt.*;
@@ -68,6 +72,12 @@ public class MyDecksView extends HomeView {
             JPanel wrap = new JPanel(new FlowLayout(FlowLayout.LEFT, 20, 20));
             wrap.setOpaque(false);
             wrap.add(card);
+        List<DeckDTO> decks = deckController.getAllDecksForUser(currentUser.getId());
+
+        // Convert to simple strings
+        List<String> deckNames = decks.stream()
+                .map(DeckDTO::getTitle)
+                .collect(Collectors.toList());
 
             decksPanel.add(wrap);
         }
