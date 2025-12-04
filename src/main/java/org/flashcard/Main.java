@@ -6,6 +6,7 @@ import org.flashcard.controllers.UserController;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationContext;
+import view.MainFrame;
 import view.TestFrame;
 
 import javax.swing.*;
@@ -25,8 +26,8 @@ public class Main {
             StudyController studyController = context.getBean(StudyController.class);
 
 
-            //MainFrame frame = new MainFrame(userController, studyController, deckController);
-            TestFrame frame = new TestFrame(userController, studyController, deckController);
+            MainFrame frame = new MainFrame(userController, studyController, deckController);
+            //TestFrame frame = new TestFrame(userController, studyController, deckController);
             frame.setVisible(true);
 
         });
