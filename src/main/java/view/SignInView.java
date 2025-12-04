@@ -11,7 +11,6 @@ public class SignInView extends JPanel {
     private JButton signInButton;
     private JLabel messageLabel;
 
-    // Listener: (username, password) -> controller handles login
     private BiConsumer<String, String> onSignIn;
 
     public SignInView() {
@@ -24,10 +23,14 @@ public class SignInView extends JPanel {
         setBackground(Theme.BG);
         setLayout(new GridBagLayout());
 
-        usernameField = new JTextField(20);
-        passwordField = new JPasswordField(20);
+        usernameField = new JTextField();
+        usernameField.setPreferredSize(new Dimension(260, 32));
+
+        passwordField = new JPasswordField();
+        passwordField.setPreferredSize(new Dimension(260, 32));
 
         signInButton = new JButton("Sign In");
+        signInButton.setPreferredSize(new Dimension(260, 36));
         signInButton.setFocusPainted(false);
 
         messageLabel = new JLabel("");
@@ -35,27 +38,49 @@ public class SignInView extends JPanel {
     }
 
     private void layoutComponents() {
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(10, 10, 10, 10);
-        gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        gbc.gridx = 0; gbc.gridy = 0;
-        add(new JLabel("Username:"), gbc);
+        //  skapar en intern panel som INTE får expandera
+        JPanel formPanel = new JPanel();
+        formPanel.setLayout(new GridBagLayout());
+        formPanel.setOpaque(false);
 
-        gbc.gridx = 1;
-        add(usernameField, gbc);
+        GridBagConstraints f = new GridBagConstraints();
+        f.insets = new Insets(10, 10, 10, 10);
+        f.fill = GridBagConstraints.NONE;  //
+        f.anchor = GridBagConstraints.WEST;
+        f.gridx = 0;
 
-        gbc.gridx = 0; gbc.gridy = 1;
-        add(new JLabel("Password:"), gbc);
+        JLabel userLabel = new JLabel("Username:");
+        userLabel.setForeground(Theme.TEXT);
+        formPanel.add(userLabel, f);
 
-        gbc.gridx = 1;
-        add(passwordField, gbc);
+        f.gridy = 1;
+        formPanel.add(usernameField, f);
 
-        gbc.gridx = 1; gbc.gridy = 2;
-        add(signInButton, gbc);
+        f.gridy = 2;
+        JLabel passLabel = new JLabel("Password:");
+        passLabel.setForeground(Theme.TEXT);
+        formPanel.add(passLabel, f);
 
-        gbc.gridx = 1; gbc.gridy = 3;
-        add(messageLabel, gbc);
+        f.gridy = 3;
+        formPanel.add(passwordField, f);
+
+        f.gridy = 4;
+        formPanel.add(signInButton, f);
+
+        f.gridy = 5;
+        formPanel.add(messageLabel, f);
+
+        //  lägger vi hela formPanel centrerad i SignInView
+        GridBagConstraints main = new GridBagConstraints();
+        main.gridx = 0;
+        main.gridy = 0;
+        main.weightx = 1;
+        main.weighty = 1;
+        main.anchor = GridBagConstraints.CENTER;
+        main.fill = GridBagConstraints.NONE;
+
+        add(formPanel, main);
     }
 
     private void addListeners() {
@@ -69,17 +94,14 @@ public class SignInView extends JPanel {
         });
     }
 
-    // Let MainFrame assign the login handler
     public void setOnSignIn(BiConsumer<String, String> listener) {
         this.onSignIn = listener;
     }
 
-    // Show message from controller
     public void showMessage(String text) {
         messageLabel.setText(text);
     }
 
-    // Clear fields
     public void clear() {
         usernameField.setText("");
         passwordField.setText("");

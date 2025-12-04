@@ -11,9 +11,10 @@ public class DeckCardTestFrame extends JFrame {
     public DeckCardTestFrame() {
         setTitle("DeckCard Test");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setBackground(Theme.BG);
         setSize(600, 400);
         setLocationRelativeTo(null);
-        setBackground(Theme.BG);
+
 
         DeckCard cardView = new DeckCard();
 
@@ -23,6 +24,7 @@ public class DeckCardTestFrame extends JFrame {
 
         setLayout(new FlowLayout(FlowLayout.CENTER, 20, 40));
         add(cardView);
+        setBackground(Theme.BG);
     }
 
     public static void main(String[] args) {
