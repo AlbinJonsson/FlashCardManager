@@ -1,5 +1,8 @@
 package view;
 
+import org.flashcard.UiControllers.AppController;
+import org.flashcard.UiControllers.UserUIController;
+import org.flashcard.UiControllers.DeckUIController;
 import org.flashcard.controllers.DeckController;
 import org.flashcard.controllers.StudyController;
 import org.flashcard.controllers.UserController;
@@ -8,6 +11,10 @@ import javax.swing.*;
 import java.awt.*;
 
 public class MainFrame extends JFrame {
+
+    private final UserUIController userUI;
+    private final DeckUIController deckUI;
+    private final AppController app;
 
     private CardLayout cardLayout;
     private JPanel contentPanel;
@@ -22,24 +29,22 @@ public class MainFrame extends JFrame {
     private MyAccountView myAccountView;
     private SignInView signInView;
 
-    private final UserController userController;
-    private final DeckController deckController;
-    private final StudyController studyController;
-
-    private JLayeredPane layeredPane;   // For overlay if needed
-    private JPanel overlayLayer;        // Semi-transparent layer for popups
-
     public MainFrame(UserController userController,
                      StudyController studyController,
                      DeckController deckController) {
 
-        this.userController = userController;
-        this.studyController = studyController;
-        this.deckController = deckController;
+        // UI Controllers (kopplar till backend men UI använder bara dessa)
+        this.userUI = new UserUIController(userController);
+        this.myDecksView = new MyDecksView();  // ändrad: tar inte in controllers
+        this.deckUI = new DeckUIController(deckController, myDecksView);
+
+        this.app = new AppController(userUI, deckUI);
 
         initComponents();
         layoutComponents();
-        setNavbarListener();
+
+        // koppla ihop AppController med views
+        app.connectViews(this);
 
         showPage("Home");
 
@@ -47,43 +52,19 @@ public class MainFrame extends JFrame {
         setSize(1920, 1080);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
-        // LOGIN HANDLER
-        signInView.setOnSignIn((username, password) -> {
-            boolean success = userController.login(username, password);
-
-            if (success) {
-                signInView.showMessage("");   // clear messages
-                signInView.clear();           // clear fields
-                showPage("Home");             // navigate to home
-            } else {
-                signInView.showMessage("Invalid username or password.");
-            }
-        });
     }
 
     private void initComponents() {
 
-        // --------- CARD LAYOUT PANEL ---------
         cardLayout = new CardLayout();
         contentPanel = new JPanel(cardLayout);
-        contentPanel.setBackground(Theme.BG);
-        contentPanel.setPreferredSize(new Dimension(800, 600));
-        contentPanel.setBackground(Color.CYAN); // bright color for debugging
 
-
-        // --------- ALL VIEWS ---------
         homeView = new HomeView();
-        myDecksView = new MyDecksView(userController, deckController);
         studyView = new StudyView();
         scheduleView = new ScheduleView();
         myAccountView = new MyAccountView();
         signInView = new SignInView();
 
-        navbarView = new NavbarView();
-        friendsView = new FriendsView(userController);
-
-        // Add pages to CardLayout
         contentPanel.add(homeView, "Home");
         contentPanel.add(myDecksView, "MyDecks");
         contentPanel.add(studyView, "Study");
@@ -91,82 +72,34 @@ public class MainFrame extends JFrame {
         contentPanel.add(myAccountView, "MyAccount");
         contentPanel.add(signInView, "SignIn");
 
-        // --------- OVERLAY LAYER ---------
-        overlayLayer = new JPanel();
-        overlayLayer.setOpaque(false);
-        overlayLayer.setLayout(new BorderLayout());
-
-        // --------- LAYERED PANE ---------
-        layeredPane = new JLayeredPane();
-        layeredPane.setLayout(new BorderLayout());
-        layeredPane.add(contentPanel, BorderLayout.CENTER);
-        layeredPane.add(overlayLayer, BorderLayout.CENTER, JLayeredPane.PALETTE_LAYER);
-
-        layeredPane.setBackground(Color.GREEN);      // should show up in center
-        contentPanel.setBackground(Color.CYAN);
+        navbarView = new NavbarView();
+        friendsView = new FriendsView();
     }
 
     private void layoutComponents() {
-
         setLayout(new BorderLayout());
 
-        // Navbar at top
         add(navbarView, BorderLayout.NORTH);
-
-        // Friends panel at left
         add(friendsView, BorderLayout.WEST);
+        add(contentPanel, BorderLayout.CENTER);
 
-        // Main content in center
-        add(layeredPane, BorderLayout.CENTER);
-    }
-
-    // -------- PAGE SWITCHING --------
-    public void showPage(String pageName) {
-        // Show CardLayout page
-        cardLayout.show(contentPanel, pageName);
-
-        // Hide friends panel for SignIn or Schedule
-        if ("SignIn".equals(pageName) || "Schedule".equals(pageName)) {
-            friendsView.setVisible(false);
-        } else {
-            friendsView.setVisible(true);
-        }
-
-        // Highlight navbar button
-        navbarView.highlight(pageName);
-
-        // Refresh UI
-
-
-        // Refresh MyDecksView if current page
-        if ("MyDecks".equals(pageName)) {
-            myDecksView.refreshDecksForCurrentUser();
-        }
-
-        friendsView.setVisible(!pageName.equals("Schedule") && !pageName.equals("SignIn"));
-        navbarView.highlight(pageName);
-        revalidate();
-        repaint();
-
-        contentPanel.revalidate();
-        contentPanel.repaint();
-        revalidate();
-        repaint();
-    }
-
-    private void setNavbarListener() {
+        // navigation
         navbarView.setOnNavigate(this::showPage);
     }
 
-    // -------- OVERLAY CONTROL (popup blur etc.) --------
-    public void showOverlay(Color transparentDark) {
-        overlayLayer.setOpaque(true);
-        overlayLayer.setBackground(transparentDark);
-        overlayLayer.repaint();
+    public void showPage(String page) {
+        cardLayout.show(contentPanel, page);
+
+        if (page.equals("MyDecks")) {
+            deckUI.reload();   // ladda decks när sidan öppnas
+        }
+
+        navbarView.highlight(page);
     }
 
-    public void hideOverlay() {
-        overlayLayer.setOpaque(false);
-        overlayLayer.repaint();
-    }
+    // ---- getters (nödvändiga för AppController) ----
+
+    public FriendsView getFriendsView() { return friendsView; }
+    public SignInView getSignInView() { return signInView; }
+    public MyDecksView getMyDecksView() { return myDecksView; }
 }

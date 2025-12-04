@@ -13,56 +13,58 @@ public class HomeView extends JPanel {
 
     public HomeView() {
         setLayout(new BorderLayout());
-        setBackground(Color.LIGHT_GRAY); // debug background
+        setBackground(Theme.BG);
 
         initComponents();
         layoutComponents();
-        styleComponents();
     }
 
     private void initComponents() {
-        // Header
+
         headerPanel = new JPanel(new BorderLayout());
-        headerPanel.setBackground(Color.WHITE);
-        titleLabel = new JLabel("Home");
+        headerPanel.setOpaque(true);
+        headerPanel.setBackground(Theme.BG);
+
+        // fast höjd på header
+        headerPanel.setPreferredSize(new Dimension(0, 60));
+        headerPanel.setMinimumSize(new Dimension(0, 60));
+        headerPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 60));
+
+        // default-titel (kan ändras i subklasser)
+        titleLabel = new JLabel("To be rehearsed today");
+        titleLabel.setFont(new Font("SansSerif", Font.BOLD, 28));
+        titleLabel.setForeground(Theme.TEXT);
+        titleLabel.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 10));
+
         headerPanel.add(titleLabel, BorderLayout.WEST);
 
-        // Decks container
+        // innehållspanel
         decksPanel = new JPanel();
         decksPanel.setLayout(new BoxLayout(decksPanel, BoxLayout.Y_AXIS));
         decksPanel.setOpaque(true);
-        decksPanel.setBackground(Color.CYAN); // debug background
+        decksPanel.setBackground(Theme.BG);
 
         scrollPane = new JScrollPane(decksPanel);
         scrollPane.setBorder(null);
-        scrollPane.getViewport().setOpaque(true);
-        scrollPane.getViewport().setBackground(Color.CYAN); // debug
+        scrollPane.setOpaque(false);
+        scrollPane.getViewport().setOpaque(false);
+        scrollPane.getViewport().setBackground(Theme.BG);
     }
 
     private void layoutComponents() {
-        add(headerPanel, BorderLayout.NORTH);
+        add(headerPanel, BorderLayout.NORTH);   // <-- VIKTIGT: header i denna view
         add(scrollPane, BorderLayout.CENTER);
     }
 
-    private void styleComponents() {
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
-    }
-
-    // Set decks as list of strings
     public void setDecks(List<String> deckNames) {
         decksPanel.removeAll();
         for (String name : deckNames) {
             JLabel label = new JLabel(name);
-            label.setFont(new Font("Arial", Font.PLAIN, 18));
-            label.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
-
-            JPanel wrapper = new JPanel(new BorderLayout());
-            wrapper.setOpaque(false);
-            wrapper.add(label, BorderLayout.CENTER);
-
-            decksPanel.add(wrapper);
+            label.setFont(new Font("SansSerif", Font.PLAIN, 18));
+            label.setForeground(Theme.TEXT);
+            label.setBorder(BorderFactory.createEmptyBorder(5, 30, 5, 10));
+            decksPanel.add(label);
         }
-
         decksPanel.revalidate();
         decksPanel.repaint();
     }
