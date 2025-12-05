@@ -9,11 +9,11 @@ public class MyDecksView extends HomeView {
     private JButton editButton;
     private JButton createButton;
 
-    // Callback som MainFrame kopplar till controller
+    // Callback som MainFrame kopplar till Create Deck-logiken
     private Runnable onCreateDeck;
 
     public MyDecksView() {
-        super();  // bygger headerPanel, titleLabel, decksPanel, scrollPane
+        super();  // Bygger headerPanel, titleLabel, decksPanel, scrollPane
 
         titleLabel.setText("My Decks");
 
@@ -34,7 +34,7 @@ public class MyDecksView extends HomeView {
                 createButton.getPreferredSize().width
         );
 
-        Dimension uniformSize = new Dimension(maxWidth, 35);
+        Dimension uniformSize = new Dimension(maxWidth + 20, 40);
 
         editButton.setPreferredSize(uniformSize);
         createButton.setPreferredSize(uniformSize);
@@ -64,7 +64,7 @@ public class MyDecksView extends HomeView {
 
         headerPanel.add(buttonPanel, BorderLayout.EAST);
 
-        // Koppla create-knappen till callback (MainFrame gör logiken)
+        // ---- Koppla Create Deck-knappen till callback ----
         createButton.addActionListener(e -> {
             if (onCreateDeck != null) {
                 onCreateDeck.run();

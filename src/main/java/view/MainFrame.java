@@ -99,6 +99,7 @@ public class MainFrame extends JFrame {
         // ---- NAV BUTTONS ----
         navbarView.setOnNavigate(this::showPage);
 
+
         // ---- SIGN IN ----
         signInView.setOnSignIn((username, password) -> {
             boolean ok = userController.login(username, password);
@@ -111,7 +112,49 @@ public class MainFrame extends JFrame {
                 signInView.showMessage("Invalid username or password.");
             }
         });
+
+
+        // ---- CREATE DECK (MY DECKS VIEW) ----
+        myDecksView.setOnCreateDeck(() -> {
+
+            CreateDeckPopup popup = new CreateDeckPopup(this);
+
+            // X-stängning i popup
+            popup.setOnClose(() -> {
+                // Ingen extra logik nu, men vi kan lägga till senare
+            });
+
+            popup.setOnCreate((title, tag) -> {
+                Integer uid = userController.getCurrentUserId();
+
+                if (uid == null) {
+                    JOptionPane.showMessageDialog(this, "You must be logged in to create a deck.");
+                    return;
+                }
+
+                try {
+                    // skapa deck
+                    deckController.createDeck(uid, title);
+
+                    // skapa tag (om användaren skriver en)
+                    if (tag != null && !tag.trim().isEmpty()) {
+                        deckController.createTag(uid, tag.trim(), "AABBCC");
+                    }
+
+                    // uppdatera MyDecks
+                    loadUserData();
+
+                    popup.close();
+
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage());
+                }
+            });
+
+            popup.open();
+        });
     }
+
 
     /**
      * Laddar ALL DATA från backend för MyDecks och Friends.
@@ -129,10 +172,7 @@ public class MainFrame extends JFrame {
 
         // ---- Friends ----
         friendsView.refreshFriendsList();
-
-
     }
-
 
     public void showPage(String name) {
 
@@ -149,7 +189,6 @@ public class MainFrame extends JFrame {
                 List<String> dueDecks = deckController.getDueDecksForUser(uid)
                         .stream().map(d -> d.getTitle()).toList();
 
-                // 🔥 NY RAD → VISA INGET OM DET FINNS INGA DUE DECKS
                 if (dueDecks.isEmpty()) {
                     homeView.setDecks(List.of());
                 } else {
