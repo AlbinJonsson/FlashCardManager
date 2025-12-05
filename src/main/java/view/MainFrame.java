@@ -84,9 +84,15 @@ public class MainFrame extends JFrame {
         navbarView.setOnSearch(text -> {
             Integer uid = userController.getCurrentUserId();
             if (uid != null) {
-                List<String> decks = deckController.getAllDecksForUser(uid)
-                        .stream().map(d -> d.getTitle()).toList();
-                homeView.setDecks(decks);
+
+                var dueDecks = deckController.getDueDecksForUser(uid);
+
+                List<String> results = dueDecks.stream()
+                        .map(d -> d.getTitle())
+                        .filter(t -> t.toLowerCase().contains(text.toLowerCase()))
+                        .toList();
+
+                homeView.setDecks(results);
             }
         });
 
@@ -107,24 +113,49 @@ public class MainFrame extends JFrame {
         });
     }
 
+    /**
+     * Laddar ALL DATA från backend för MyDecks och Friends.
+     * OBS!!! INTE HomeView → den uppdateras i showPage("Home")
+     */
     private void loadUserData() {
         Integer uid = userController.getCurrentUserId();
         if (uid == null) return;
 
-        List<String> decks = deckController.getAllDecksForUser(uid)
+        // ---- ALLA DECKS → MyDecksView ----
+        List<String> allDecks = deckController.getAllDecksForUser(uid)
                 .stream().map(d -> d.getTitle()).toList();
 
-        myDecksView.updateDecks(decks);
-        homeView.setDecks(decks);
+        myDecksView.updateDecks(allDecks);
 
+        // ---- Friends ----
         friendsView.refreshFriendsList();
+
+
     }
 
+
     public void showPage(String name) {
+
         cardLayout.show(contentPanel, name);
 
         if (name.equals("MyDecks")) {
             loadUserData();
+        }
+
+        if (name.equals("Home")) {
+            Integer uid = userController.getCurrentUserId();
+
+            if (uid != null) {
+                List<String> dueDecks = deckController.getDueDecksForUser(uid)
+                        .stream().map(d -> d.getTitle()).toList();
+
+                // 🔥 NY RAD → VISA INGET OM DET FINNS INGA DUE DECKS
+                if (dueDecks.isEmpty()) {
+                    homeView.setDecks(List.of());
+                } else {
+                    homeView.setDecks(dueDecks);
+                }
+            }
         }
 
         navbarView.highlight(name);

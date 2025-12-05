@@ -12,6 +12,7 @@ public class Theme {
     public static final Color CARD_BG = new Color(255, 255, 255);
     public static final Color TEXT = new Color(255, 255, 255);
     public static final Color BORDER = new Color(255, 255, 255, 255);
+    public static final Color Butten_BG =new Color(68, 133, 184);
 
     // Vit färg om man vill explicit använda
     public static final Color WHITE = new Color(255, 255, 255, 255);

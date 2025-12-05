@@ -119,8 +119,15 @@ public class DeckController {
     // Helper method
     private boolean isCardDue(Flashcard card) {
         CardLearningState state = card.getCardLearningState();
-        return state == null || state.isDueToday();
+
+        // NULL ska INTE räknas som due (annars returnerar ALLA deck som due)
+       /** if (state == null) {
+            return false;
+        }
+        return state.isDueToday(); **/
+       return false;
     }
+
 
     public DeckDTO updateDeck(Integer deckId, String newTitle, Integer newTagId) {
         // 1. Hämta Entiteten

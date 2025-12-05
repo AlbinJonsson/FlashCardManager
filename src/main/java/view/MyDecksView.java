@@ -7,46 +7,83 @@ import java.util.List;
 public class MyDecksView extends HomeView {
 
     private JButton editButton;
+    private JButton createButton;
+
+    // Callback som MainFrame kopplar till controller
+    private Runnable onCreateDeck;
 
     public MyDecksView() {
-        super();
+        super();  // bygger headerPanel, titleLabel, decksPanel, scrollPane
+
         titleLabel.setText("My Decks");
-        initEditButton();
+
+        initButtons();
+        layoutButtons();
     }
 
-    private void initEditButton() {
-        editButton = new JButton("Edit Decks");
-        editButton.setFocusPainted(false);
-        editButton.setOpaque(true);
+    private void initButtons() {
+        editButton = new JButton("Edit Deck");
+        createButton = new JButton("Create Deck");
 
-        editButton.setBackground(new Color(245, 245, 245));
-        editButton.setForeground(Color.BLACK);
-        editButton.setFont(Theme.NORMAL);
+        styleButton(editButton);
+        styleButton(createButton);
 
-        editButton.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(200,200,200), 1, true),
-                BorderFactory.createEmptyBorder(6, 14, 6, 14)
-        ));
+        // ---- Gör knapparna lika stora ----
+        int maxWidth = Math.max(
+                editButton.getPreferredSize().width,
+                createButton.getPreferredSize().width
+        );
 
-        editButton.setPreferredSize(new Dimension(130, 36));
+        Dimension uniformSize = new Dimension(maxWidth, 35);
 
-        editButton.addMouseListener(new java.awt.event.MouseAdapter() {
-            @Override public void mouseEntered(java.awt.event.MouseEvent e) {
-                editButton.setBackground(new Color(235, 235, 235));
-            }
-            @Override public void mouseExited(java.awt.event.MouseEvent e) {
-                editButton.setBackground(new Color(245, 245, 245));
+        editButton.setPreferredSize(uniformSize);
+        createButton.setPreferredSize(uniformSize);
+    }
+
+    private void styleButton(JButton button) {
+        button.setFont(new Font("SansSerif", Font.BOLD, 14));
+        button.setFocusPainted(false);
+
+        // padding
+        button.setBorder(BorderFactory.createEmptyBorder(8, 20, 8, 20));
+
+        // färg enligt ditt Theme
+        button.setBackground(Theme.Butten_BG);
+        button.setForeground(Color.WHITE);
+
+        // muspekare
+        button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+    }
+
+    private void layoutButtons() {
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 15));
+        buttonPanel.setOpaque(false);
+
+        buttonPanel.add(editButton);
+        buttonPanel.add(createButton);
+
+        headerPanel.add(buttonPanel, BorderLayout.EAST);
+
+        // Koppla create-knappen till callback (MainFrame gör logiken)
+        createButton.addActionListener(e -> {
+            if (onCreateDeck != null) {
+                onCreateDeck.run();
             }
         });
-
-        JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 20, 10));
-        rightPanel.setOpaque(false);
-        rightPanel.add(editButton);
-
-        headerPanel.add(rightPanel, BorderLayout.EAST);
     }
 
+    /**
+     * Uppdaterar lista med deck-namn i panelen.
+     * HomeView.setDecks(...) gör jobbet.
+     */
     public void updateDecks(List<String> deckNames) {
         setDecks(deckNames);
+    }
+
+    /**
+     * MainFrame kopplar vad som ska hända vid "Create Deck".
+     */
+    public void setOnCreateDeck(Runnable onCreateDeck) {
+        this.onCreateDeck = onCreateDeck;
     }
 }
