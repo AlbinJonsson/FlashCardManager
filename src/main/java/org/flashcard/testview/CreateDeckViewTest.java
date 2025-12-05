@@ -25,7 +25,7 @@ public class CreateDeckViewTest extends JPanel {
     private JTextField titleField;
 
     // Tag UI
-    private JComboBox<Object> existingTagsCombo; // items: "-- Ny tag --", TagDTO ...
+    private JComboBox<Object> existingTagsCombo;
     private JTextField newTagField;
     private JButton colorChooserButton;
 
@@ -33,9 +33,9 @@ public class CreateDeckViewTest extends JPanel {
     private JTextField frontField;
     private JTextField backField;
 
-    private JButton mainActionButton; // "Skapa Lek" eller "Lägg till Kort"
+    private JButton mainActionButton;
     private JButton finishButton;
-    private JButton newDeckButton;
+    private JButton cancelButton;
     private JLabel statusLabel;
     private JLabel headerLabel;
 
@@ -51,23 +51,20 @@ public class CreateDeckViewTest extends JPanel {
     }
 
     private void initComponents() {
-        // --- Header ---
+
         headerLabel = new JLabel("Skapa ny lek");
         headerLabel.setFont(new Font("SansSerif", Font.BOLD, 24));
         headerLabel.setBorder(BorderFactory.createEmptyBorder(30, 0, 30, 0));
         headerLabel.setHorizontalAlignment(SwingConstants.CENTER);
         add(headerLabel, BorderLayout.NORTH);
 
-        // --- Center Form ---
         formPanel = new JPanel();
         formPanel.setLayout(new BoxLayout(formPanel, BoxLayout.Y_AXIS));
         formPanel.setBackground(Color.WHITE);
         formPanel.setBorder(BorderFactory.createEmptyBorder(0, 100, 0, 100));
 
-        // Deck Fields (Visas först)
         titleField = createLabeledField("Titel på leken:", formPanel);
 
-        // Tag chooser area
         JPanel tagPanel = new JPanel();
         tagPanel.setLayout(new BoxLayout(tagPanel, BoxLayout.Y_AXIS));
         tagPanel.setBackground(Color.WHITE);
@@ -79,16 +76,14 @@ public class CreateDeckViewTest extends JPanel {
         tagPanel.add(tagLabel);
         tagPanel.add(Box.createVerticalStrut(6));
 
-        // existing tags combo
         existingTagsCombo = new JComboBox<>();
         existingTagsCombo.setMaximumSize(new Dimension(500, 32));
         existingTagsCombo.setAlignmentX(Component.CENTER_ALIGNMENT);
-        existingTagsCombo.addItem("-- Ny tagg --"); // index 0 means create new tag
+        existingTagsCombo.addItem("-- Ny tagg --");
         existingTagsCombo.addActionListener(e -> onTagSelectionChanged());
         tagPanel.add(existingTagsCombo);
         tagPanel.add(Box.createVerticalStrut(8));
 
-        // new tag name input
         newTagField = new JTextField();
         newTagField.setMaximumSize(new Dimension(500, 36));
         newTagField.setFont(new Font("SansSerif", Font.PLAIN, 14));
@@ -96,7 +91,6 @@ public class CreateDeckViewTest extends JPanel {
         tagPanel.add(newTagField);
         tagPanel.add(Box.createVerticalStrut(8));
 
-        // color chooser button row
         JPanel colorRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
         colorRow.setBackground(Color.WHITE);
         colorRow.setMaximumSize(new Dimension(500, 36));
@@ -112,15 +106,12 @@ public class CreateDeckViewTest extends JPanel {
         colorRow.add(colorHint);
 
         tagPanel.add(colorRow);
-
         formPanel.add(tagPanel);
 
-        // Card Fields (Dolda först)
         frontField = createLabeledField("Framsida (Fråga):", formPanel);
         backField = createLabeledField("Baksida (Svar):", formPanel);
         toggleCardFields(false);
 
-        // --- Buttons ---
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 20));
         buttonPanel.setBackground(Color.WHITE);
 
@@ -134,15 +125,19 @@ public class CreateDeckViewTest extends JPanel {
         finishButton = new JButton("Klar (Tillbaka)");
         finishButton.setPreferredSize(new Dimension(150, 40));
         finishButton.addActionListener(e -> resetAndGoBack());
-        finishButton.setVisible(false); // Visas först när leken är skapad
+        finishButton.setVisible(false);
 
-        newDeckButton = new JButton("Skapa ny lek");
-        newDeckButton.setPreferredSize(new Dimension(150, 40));
-        newDeckButton.addActionListener(e -> resetFormForNewDeck());
+        // Cancel (Avbryt) button
+        cancelButton = new JButton("Avbryt");
+        cancelButton.setPreferredSize(new Dimension(150, 40));
+        cancelButton.setBackground(new Color(200, 60, 60));
+        cancelButton.setForeground(Color.WHITE);
+        cancelButton.setFocusPainted(false);
+        cancelButton.addActionListener(e -> resetAndGoBack());
 
         buttonPanel.add(mainActionButton);
         buttonPanel.add(finishButton);
-        buttonPanel.add(newDeckButton);
+        buttonPanel.add(cancelButton);
 
         formPanel.add(Box.createVerticalStrut(20));
         formPanel.add(buttonPanel);
@@ -154,7 +149,6 @@ public class CreateDeckViewTest extends JPanel {
 
         add(formPanel, BorderLayout.CENTER);
 
-        // load tags initially for logged-in user (if any)
         SwingUtilities.invokeLater(this::loadTagsForCurrentUser);
     }
 
@@ -197,7 +191,6 @@ public class CreateDeckViewTest extends JPanel {
     }
 
     private Color contrastColorFor(Color c) {
-        // enkel kontrast: välj vitt eller svart beroende på ljushet
         double luminance = (0.299 * c.getRed() + 0.587 * c.getGreen() + 0.114 * c.getBlue()) / 255;
         return luminance > 0.6 ? Color.BLACK : Color.WHITE;
     }
@@ -214,7 +207,6 @@ public class CreateDeckViewTest extends JPanel {
                 existingTagsCombo.addItem(t);
             }
         } catch (Exception e) {
-            // ignore or show small notice
             System.err.println("Kunde inte läsa taggar: " + e.getMessage());
         }
         onTagSelectionChanged();
@@ -226,9 +218,8 @@ public class CreateDeckViewTest extends JPanel {
 
         titleField.getParent().setVisible(!show);
         existingTagsCombo.getParent().setVisible(!show);
-        newTagField.getParent().setVisible(!show); // parent är same wrapper so ensure correct
-        // Instead of relying on parents, we simply toggle the visible state for the specific components:
-        newTagField.setVisible(!(!show)); // keep it in layout but its visibility controlled by onTagSelectionChanged
+        newTagField.getParent().setVisible(!show);
+        newTagField.setVisible(!(!show));
         colorChooserButton.setVisible(!(!show));
 
         titleField.setEditable(!show);
@@ -247,42 +238,37 @@ public class CreateDeckViewTest extends JPanel {
         Integer userId = userController.getCurrentUserId();
 
         if (title.isBlank()) {
-            JOptionPane.showMessageDialog(this, "Du måste ange en titel!");
+            showStyledMessage("Fel", "Du måste ange en titel!", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
         if (userId == null) {
-            JOptionPane.showMessageDialog(this, "Ingen användare inloggad!");
+            showStyledMessage("Fel", "Ingen användare inloggad!", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
         if (deckController.deckExists(userId, title)) {
-            JOptionPane.showMessageDialog(this, "Du har redan en lek med detta namn!");
+            // Nice styled message instead of raw SQL/text
+            showStyledMessage("Du har redan en lek med detta namn!", "Du har redan en lek med detta namn!", JOptionPane.INFORMATION_MESSAGE);
             return;
         }
 
         try {
-            // Skapa deck först
             createdDeck = deckController.createDeck(userId, title);
 
-            // Tagghantering:
             Object sel = existingTagsCombo.getSelectedItem();
             if (sel == null || (sel instanceof String && ((String) sel).equals("-- Ny tagg --"))) {
-                // skapa ny tagg om användaren angivit namn
                 String newTagName = newTagField.getText().trim();
                 if (!newTagName.isBlank()) {
-                    // convert color to hex (RRGGBB)
                     String hex = String.format(Locale.ROOT, "%02x%02x%02x",
                             selectedTagColor.getRed(), selectedTagColor.getGreen(), selectedTagColor.getBlue()).toUpperCase();
                     try {
                         var tagDto = deckController.createTag(userId, newTagName, hex);
                         deckController.assignTagToDeck(createdDeck.getId(), tagDto.getId());
-                        // uppdatera createdDeck
                         createdDeck = deckController.getDeckById(createdDeck.getId());
-                        // reload tag-list so new tag appears
                         loadTagsForCurrentUser();
                     } catch (Exception ex) {
-                        JOptionPane.showMessageDialog(this, "Deck skapad men tagg kunde ej läggas till: " + ex.getMessage());
+                        showStyledMessage("Varning", "Deck skapad men tagg kunde ej läggas till: " + ex.getMessage(), JOptionPane.WARNING_MESSAGE);
                     }
                 }
             } else if (sel instanceof TagDTO) {
@@ -291,11 +277,10 @@ public class CreateDeckViewTest extends JPanel {
                     deckController.assignTagToDeck(createdDeck.getId(), t.getId());
                     createdDeck = deckController.getDeckById(createdDeck.getId());
                 } catch (Exception ex) {
-                    JOptionPane.showMessageDialog(this, "Lek skapad men tagg kunde ej kopplas: " + ex.getMessage());
+                    showStyledMessage("Varning", "Lek skapad men tagg kunde ej kopplas: " + ex.getMessage(), JOptionPane.WARNING_MESSAGE);
                 }
             }
 
-            // Uppdatera UI för att lägga till kort
             headerLabel.setText("Lägg till kort i: " + createdDeck.getTitle());
             mainActionButton.setText("Lägg till Kort");
             finishButton.setVisible(true);
@@ -303,7 +288,7 @@ public class CreateDeckViewTest extends JPanel {
             statusLabel.setText("Lek skapad! Lägg nu till kort.");
 
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Fel: " + e.getMessage());
+            showStyledMessage("Fel", "Fel: " + e.getMessage(), JOptionPane.ERROR_MESSAGE);
             createdDeck = null;
         }
     }
@@ -313,30 +298,28 @@ public class CreateDeckViewTest extends JPanel {
         String back = backField.getText().trim();
 
         if (front.isBlank() || back.isBlank()) {
-            JOptionPane.showMessageDialog(this, "Både framsida och baksida behövs.");
+            showStyledMessage("Fel", "Både framsida och baksida behövs.", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
         if (createdDeck == null) {
-            JOptionPane.showMessageDialog(this, "Ingen lek vald att lägga till kort i.");
+            showStyledMessage("Fel", "Ingen lek vald att lägga till kort i.", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
         try {
             deckController.addFlashcard(createdDeck.getId(), front, back);
-
-            // Hämta uppdaterad deck eller lista med kort så vi får korrekt antal
             createdDeck = deckController.getDeckById(createdDeck.getId());
             int count = createdDeck.getCardCount();
 
-            // Rensa fält och ge feedback
             frontField.setText("");
             backField.setText("");
             frontField.requestFocus();
             statusLabel.setText("Kort tillagt! (" + count + " totalt)");
 
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Kunde inte spara kort: " + e.getMessage());
+            // If addFlashcard throws e.g. IllegalArgumentException for duplicate name, show styled message
+            showStyledMessage("Fel vid sparande", e.getMessage(), JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -353,17 +336,40 @@ public class CreateDeckViewTest extends JPanel {
         finishButton.setVisible(false);
         toggleCardFields(false);
 
-        // reset color to default
         selectedTagColor = new Color(0x808080);
         colorChooserButton.setBackground(selectedTagColor);
         colorChooserButton.setForeground(contrastColorFor(selectedTagColor));
 
-        // reload tags
         loadTagsForCurrentUser();
     }
 
     private void resetAndGoBack() {
         resetFormForNewDeck();
         appFrame.navigateTo("MyDecks");
+    }
+
+    /**
+     * Visar ett stylat meddelandecenterat i en JOptionPane.
+     * messageTitle kan vara rubrik; messageText är texten.
+     * messageType: JOptionPane.INFORMATION_MESSAGE / WARNING_MESSAGE / ERROR_MESSAGE
+     */
+    private void showStyledMessage(String messageTitle, String messageText, int messageType) {
+        // Använd HTML för att centrera och göra texten fet och större
+        String html = "<html><div style='text-align:center; font-weight:bold; font-size:13pt;'>" +
+                escapeHtml(messageText) +
+                "</div></html>";
+
+        JLabel label = new JLabel(html);
+        label.setHorizontalAlignment(SwingConstants.CENTER);
+        label.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
+
+        // Visa meddelandet med standard-ikon beroende på typ
+        JOptionPane.showMessageDialog(this, label, messageTitle, messageType);
+    }
+
+    /** Enkel HTML-escape för säker rendering i JLabel */
+    private String escapeHtml(String s) {
+        if (s == null) return "";
+        return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\n", "<br/>");
     }
 }
