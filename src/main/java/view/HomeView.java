@@ -1,5 +1,7 @@
 package view;
 
+import org.flashcard.application.dto.DeckDTO;
+
 import javax.swing.*;
 import java.awt.*;
 import java.util.List;
@@ -38,13 +40,19 @@ public class HomeView extends JPanel {
 
         headerPanel.add(titleLabel, BorderLayout.WEST);
 
-        // Panel som listar decks
         decksPanel = new JPanel();
-        decksPanel.setLayout(new BoxLayout(decksPanel, BoxLayout.Y_AXIS));
+        decksPanel.setLayout(new GridLayout(0, 3, 20, 20));
         decksPanel.setOpaque(true);
         decksPanel.setBackground(Theme.BG);
 
-        scrollPane = new JScrollPane(decksPanel);
+        // === WRAPPER PANEL WITH EDGE PADDING ===
+        JPanel wrapper = new JPanel(new BorderLayout());
+        wrapper.setOpaque(false);
+        wrapper.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20)); // top, left, bottom, right
+        wrapper.add(decksPanel, BorderLayout.CENTER);
+
+
+        scrollPane = new JScrollPane(wrapper);
         scrollPane.setBorder(null);
         scrollPane.setOpaque(false);
         scrollPane.getViewport().setOpaque(false);
@@ -56,20 +64,21 @@ public class HomeView extends JPanel {
         add(scrollPane, BorderLayout.CENTER);
     }
 
-    /**
-     * View är dum → den tar bara emot en lista från controller via MainFrame.
-     */
-    public void setDecks(List<String> deckNames) {
+
+    public void setDecks(List<DeckDTO> decks) {
         decksPanel.removeAll();
 
-        for (String name : deckNames) {
-            JLabel label = new JLabel(name);
+        for (DeckDTO deck : decks) {
+            DeckCard card = new DeckCard();
+            card.setCardData(
+                    deck.getCardCount(),
+                    1,
+                    deck.getTitle(),
+                    deck.getSafeTagTitle(),
+                    deck.getSafeTagColor()
+            );
 
-            label.setFont(new Font("SansSerif", Font.PLAIN, 18));
-            label.setForeground(Theme.TEXT);
-            label.setBorder(BorderFactory.createEmptyBorder(5, 30, 5, 10));
-
-            decksPanel.add(label);
+            decksPanel.add(card);
         }
 
         decksPanel.revalidate();

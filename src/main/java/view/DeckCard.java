@@ -8,8 +8,8 @@ public class DeckCard extends JPanel {
     // View håller bara på med data den fått utifrån
     private int cardCount;      // antal flashcards
     private int trophyCount;    // 0–3 pokaler
-    private String title = "";  // deck-namn
-    private String tag = "";    // t.ex. "history"
+    private String deckTitle = "";  // deck-namn
+    private String tagTitle = "";    // t.ex. "history"
     private Color tagColor = new Color(240, 180, 120);
 
     public DeckCard() {
@@ -23,13 +23,13 @@ public class DeckCard extends JPanel {
      */
     public void setCardData(int cardCount,
                             int trophyCount,
-                            String title,
-                            String tag,
+                            String deckTitle,
+                            String tagTitle,
                             Color tagColor) {
         this.cardCount = cardCount;
         this.trophyCount = trophyCount;
-        this.title = title;
-        this.tag = tag;
+        this.deckTitle = deckTitle;
+        this.tagTitle = tagTitle;
         this.tagColor = tagColor;
         repaint();
     }
@@ -76,12 +76,12 @@ public class DeckCard extends JPanel {
         // ========== TITLE (CENTER) ==========
         g2.setFont(new Font("SansSerif", Font.BOLD, 36));
         g2.setColor(new Color(70, 70, 70));
-        int titleW = g2.getFontMetrics().stringWidth(title);
-        g2.drawString(title, (w - titleW) / 2, h / 2 + 10);
+        int titleW = g2.getFontMetrics().stringWidth(deckTitle);
+        g2.drawString(deckTitle, (w - titleW) / 2, h / 2 + 10);
 
         // ========== TAG BOX (#tag) ==========
-        if (tag != null && !tag.isEmpty()) {
-            String tagText = "#" + tag;
+        if (tagTitle != null && !tagTitle.isEmpty()) {
+            String tagText = "#" + tagTitle;
             g2.setFont(new Font("SansSerif", Font.BOLD, 18));
 
             int tagW = g2.getFontMetrics().stringWidth(tagText);

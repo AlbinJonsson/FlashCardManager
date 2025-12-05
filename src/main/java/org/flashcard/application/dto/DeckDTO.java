@@ -1,5 +1,7 @@
 package org.flashcard.application.dto;
 
+import java.awt.*;
+
 public class DeckDTO {
     private final String title;
     private final int id;
@@ -18,4 +20,16 @@ public class DeckDTO {
     public int getCardCount() { return cardCount; }
     public TagDTO getTagDTO() { return tagDTO; }
     public int getDueCount() { return dueCount; }
+
+    public boolean hasTag() {
+        return tagDTO != null;
+    }
+
+    public String getSafeTagTitle() {
+        return (tagDTO != null ? tagDTO.getTitle() : "");
+    }
+
+    public Color getSafeTagColor() {
+        return (tagDTO != null ? tagDTO.getColor() : Color.GRAY);
+    }
 }

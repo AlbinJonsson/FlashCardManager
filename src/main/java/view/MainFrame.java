@@ -1,8 +1,10 @@
 package view;
 
+import org.flashcard.application.dto.DeckDTO;
 import org.flashcard.controllers.UserController;
 import org.flashcard.controllers.DeckController;
 import org.flashcard.controllers.StudyController;
+import org.flashcard.models.dataclasses.Deck;
 
 import javax.swing.*;
 import java.awt.*;
@@ -66,6 +68,8 @@ public class MainFrame extends JFrame {
         contentPanel.add(myAccountView, "MyAccount");
         contentPanel.add(signInView, "SignIn");
 
+
+
         navbarView = new NavbarView();
         friendsView = new FriendsView(userController);
     }
@@ -84,8 +88,7 @@ public class MainFrame extends JFrame {
         navbarView.setOnSearch(text -> {
             Integer uid = userController.getCurrentUserId();
             if (uid != null) {
-                List<String> decks = deckController.getAllDecksForUser(uid)
-                        .stream().map(d -> d.getTitle()).toList();
+                List<DeckDTO> decks = deckController.getAllDecksForUser(uid);
                 homeView.setDecks(decks);
             }
         });
@@ -108,11 +111,10 @@ public class MainFrame extends JFrame {
     }
 
     private void loadUserData() {
-        Integer uid = userController.getCurrentUserId();
-        if (uid == null) return;
+        Integer userId = userController.getCurrentUserId();
+        if (userId == null) return;
 
-        List<String> decks = deckController.getAllDecksForUser(uid)
-                .stream().map(d -> d.getTitle()).toList();
+        List<DeckDTO> decks = deckController.getAllDecksForUser(userId);
 
         myDecksView.updateDecks(decks);
         homeView.setDecks(decks);
@@ -128,5 +130,6 @@ public class MainFrame extends JFrame {
         }
 
         navbarView.highlight(name);
+
     }
 }

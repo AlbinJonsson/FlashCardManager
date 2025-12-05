@@ -136,6 +136,9 @@ public class FriendsView extends JPanel {
                         "You are now signed in as: " + user.getUsername(),
                         "Signed In",
                         JOptionPane.INFORMATION_MESSAGE);
+                        revalidate();
+                        repaint();
+
             });
 
             listPanel.add(userButton);

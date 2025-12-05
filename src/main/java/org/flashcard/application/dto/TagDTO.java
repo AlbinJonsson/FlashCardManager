@@ -1,6 +1,8 @@
 package org.flashcard.application.dto;
 
 
+import java.awt.*;
+
 public class TagDTO {
     private final int id;
     private final String title;
@@ -13,7 +15,17 @@ public class TagDTO {
     }
 
     public String getTitle() { return title; }
-    public String getColorHex() { return colorHex; }
+
+    public Color getColor() {
+        if (colorHex == null || colorHex.isEmpty()) {
+            return Color.WHITE; // or a default
+        }
+
+        // Ensure the string starts with a '#'
+        String hex = colorHex.startsWith("#") ? colorHex : "#" + colorHex;
+
+        return Color.decode(hex);
+    }
     public int getId() { return id; }
 
     @Override
