@@ -158,7 +158,6 @@ public class MainFrame extends JFrame {
 
     /**
      * Laddar ALL DATA från backend för MyDecks och Friends.
-     * OBS!!! INTE HomeView → den uppdateras i showPage("Home")
      */
     private void loadUserData() {
         Integer uid = userController.getCurrentUserId();

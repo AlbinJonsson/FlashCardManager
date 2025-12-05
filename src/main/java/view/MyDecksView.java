@@ -74,7 +74,6 @@ public class MyDecksView extends HomeView {
 
     /**
      * Uppdaterar lista med deck-namn i panelen.
-     * HomeView.setDecks(...) gör jobbet.
      */
     public void updateDecks(List<String> deckNames) {
         setDecks(deckNames);
