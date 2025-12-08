@@ -2,18 +2,37 @@ package org.flashcard.models.dataclasses;
 
 import jakarta.persistence.*;
 import java.time.LocalDate;
-
+/* Our dataclasses also take use of Spring Framework.
+ *
+ * @Entity denotes that this class represents the "CardLearningState" table in the database.
+ *
+ * Spring can then use this class to map between Java objects and database rows:
+ *
+ * When a repository like UserRepository calls save(), findById(), or delete(), Spring automatically:
+ *   1. Reads these annotations to know the table and columns.
+ *   2. Generates the appropriate SQL.
+ *   3. Maps database rows to CardLearningState objects and vice versa.
+ *
+ * This helps us reduce the amount of boilerplate SQL we need to write.
+ *
+ * The idea of CardLearningState is to map each Flashcard to a CardLEarningState.
+ * This class holds statistics about how often a Flashcard has been reviewed
+ * and when the next review is due.
+ *
+ */
 @Entity
 @Table(name = "CardLearningState")
 public class CardLearningState {
 
     @Id
-    private Integer flashcardId; // shared PK with Flashcard
+    private Integer flashcardId; // samma som flashcard.id
 
     @OneToOne
-    @MapsId // Use flashcardId as both PK and FK
-    @JoinColumn(name = "flashcardId")
+    @JoinColumn(name = "flashcard_id")
+    @MapsId // ← viktigt: betyder att CardLearningState använder samma id som Flashcard
     private Flashcard flashcard;
+
+
 
     private LocalDate lastReviewDate;
     private LocalDate nextReviewDate;

@@ -17,6 +17,18 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/* We use Spring Data JPA to access the database.
+ *
+ * This class is annotated with @Service, which tells Spring
+ * that it is a service-layer component.
+ *
+ * Spring automatically detects it and creates a bean in the application context,
+ * so it can be injected wherever needed.(see main.java)
+ *
+ * The @Transactional annotation ensures that no database transactions are left unfinished.
+ * It automatically aborts any transactions that result in an error.
+ * This allows us to write logic without manually handling database transactions.
+ */
 @Service
 @Transactional
 public class DeckController {
@@ -27,9 +39,9 @@ public class DeckController {
     private final TagRepository tagRepo;
 
     public DeckController(DeckRepository deckRepo,
-                       FlashcardRepository flashcardRepo,
-                       UserRepository userRepo,
-                       TagRepository tagRepo) {
+                          FlashcardRepository flashcardRepo,
+                          UserRepository userRepo,
+                          TagRepository tagRepo) {
         this.deckRepo = deckRepo;
         this.flashcardRepo = flashcardRepo;
         this.userRepo = userRepo;
@@ -84,12 +96,15 @@ public class DeckController {
     public List<DeckDTO> getAllDecksForUser(Integer userId) {
         List<Deck> userDecks = deckRepo.findByUserId(userId);
 
-        // Här bryr vi oss kanske inte om 'dueCount', så vi skickar 0 eller räknar ut det om du vill visa det ändå.
-        // Men viktigast är att vi INTE filtrerar bort några lekar.
         return userDecks.stream()
-                .map(DeckMapper::toDTO)
+                .map(deck -> {
+                    // Räkna antal kort via repository istället för deck.getCards()
+                    long cardCount = flashcardRepo.countByDeckId(deck.getId());
+                    return DeckMapper.toDTO(deck, (int) cardCount);
+                })
                 .collect(Collectors.toList());
     }
+
 
     public DeckDTO getDeckById(Integer deckId) {
         Deck deck = deckRepo.findById(deckId)
@@ -155,15 +170,27 @@ public class DeckController {
     public FlashcardDTO addFlashcard(Integer deckId, String front, String back) {
 
         Deck deck = deckRepo.findById(deckId)
-                .orElseThrow(() -> new IllegalArgumentException("Deck not found"));
+                .orElseThrow(() -> new IllegalArgumentException("Leken hittades inte"));
 
-        Flashcard card = new Flashcard(front, back, deck);
+        try {
+            Flashcard card = new Flashcard(front, back, deck);
+            Flashcard savedCard = flashcardRepo.save(card);
+            return FlashcardMapper.toDTO(savedCard);
 
-        card.setCardLearningState(new CardLearningState(card));
-        Flashcard savedCard = flashcardRepo.save(card);
-
-        return FlashcardMapper.toDTO(savedCard);    //Convert to DTO
+        } catch (org.springframework.dao.DataIntegrityViolationException e) {
+            throw new IllegalArgumentException(
+                    "Ett kort med denna framsida finns redan"
+            );
+        }
     }
+
+
+
+    public boolean deckExists(Integer userId, String title) {
+        return deckRepo.existsByUserIdAndTitle(userId, title);
+    }
+
+
 
     public List<FlashcardDTO> getFlashcardsForDeck(Integer deckId) {
         List<Flashcard> cards = flashcardRepo.findByDeckId(deckId);
