@@ -5,29 +5,22 @@ import org.flashcard.application.dto.DeckDTO;
 import org.flashcard.controllers.DeckController;
 import org.flashcard.controllers.UserController;
 
+import org.flashcard.controllers.observer.Observer; // NEW
+
 import javax.swing.*;
 import java.awt.*;
 import java.util.List;
 
-/**
- * EditDeckView - vy för att redigera ett valt deck:
- * - visa lista med flashcards (med delete-knappar)
- * - lägga till flashcards
- * - radera hela leken
- * - back/return
- */
-public class EditDeckView extends JPanel {
+public class EditDeckView extends JPanel implements Observer<List<FlashcardDTO>> {  // NEW
 
     private final DeckController deckController;
     private final UserController userController;
     private final AppFrame appFrame;
 
-    // State
     private DeckDTO currentDeck;
 
-    // UI
     private JLabel headerLabel;
-    private JPanel cardsListPanel; // innehåller rader för varje kort
+    private JPanel cardsListPanel;
     private JScrollPane cardsScroll;
     private JTextField newFrontField;
     private JTextField newBackField;
@@ -41,13 +34,17 @@ public class EditDeckView extends JPanel {
         this.userController = userController;
         this.appFrame = appFrame;
 
+        // registrera observer
+        deckController.getFlashcardsObservable().addListener(this);
+
         setLayout(new BorderLayout());
         setBackground(new Color(245, 245, 245));
         initComponents();
     }
 
     private void initComponents() {
-        // Header
+
+
         JPanel top = new JPanel(new BorderLayout());
         top.setBackground(new Color(245, 245, 245));
         top.setBorder(BorderFactory.createEmptyBorder(12, 16, 12, 16));
@@ -68,7 +65,6 @@ public class EditDeckView extends JPanel {
 
         add(top, BorderLayout.NORTH);
 
-        // Center: cards list
         cardsListPanel = new JPanel();
         cardsListPanel.setLayout(new BoxLayout(cardsListPanel, BoxLayout.Y_AXIS));
         cardsListPanel.setBackground(Color.WHITE);
@@ -79,7 +75,6 @@ public class EditDeckView extends JPanel {
         cardsScroll.getVerticalScrollBar().setUnitIncrement(14);
         add(cardsScroll, BorderLayout.CENTER);
 
-        // Bottom: add card form + status
         JPanel bottom = new JPanel();
         bottom.setLayout(new BoxLayout(bottom, BoxLayout.Y_AXIS));
         bottom.setBackground(new Color(245, 245, 245));
@@ -116,7 +111,6 @@ public class EditDeckView extends JPanel {
         bottom.add(form);
         bottom.add(formRow);
 
-        // status
         statusLabel = new JLabel(" ");
         statusLabel.setFont(new Font("SansSerif", Font.PLAIN, 12));
         statusLabel.setForeground(new Color(0, 120, 0));
@@ -126,9 +120,6 @@ public class EditDeckView extends JPanel {
         add(bottom, BorderLayout.SOUTH);
     }
 
-    /**
-     * Ladda deck i edit-läget (anropa från AppFrame eller MyDecksView när användaren klickar "Edit")
-     */
     public void loadDeck(int deckId) {
         try {
             currentDeck = deckController.getDeckById(deckId);
@@ -149,7 +140,6 @@ public class EditDeckView extends JPanel {
             return;
         }
 
-        // Hämta kort via controllern (säkrare än att förlita sig på lazy-listor)
         List<FlashcardDTO> cards = deckController.getFlashcardsForDeck(currentDeck.getId());
 
         if (cards.isEmpty()) {
@@ -171,7 +161,6 @@ public class EditDeckView extends JPanel {
         row.setBackground(Color.WHITE);
         row.setBorder(BorderFactory.createMatteBorder(0,0,1,0, new Color(230,230,230)));
 
-        // Left: front/back text
         JPanel text = new JPanel();
         text.setLayout(new BoxLayout(text, BoxLayout.Y_AXIS));
         text.setBackground(Color.WHITE);
@@ -182,7 +171,6 @@ public class EditDeckView extends JPanel {
         text.add(front);
         text.add(back);
 
-        // Right: action buttons
         JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 6, 6));
         actions.setBackground(Color.WHITE);
 
@@ -216,32 +204,35 @@ public class EditDeckView extends JPanel {
 
         try {
             deckController.addFlashcard(currentDeck.getId(), front, back);
-            // rensa formulär och uppdatera listan
             newFrontField.setText("");
             newBackField.setText("");
             statusLabel.setText("Kort tillagt!");
-            // uppdatera currentDeck DTO (så t.ex. cardCount blir korrekt)
+
             currentDeck = deckController.getDeckById(currentDeck.getId());
             refreshCardsList();
+
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Kunde inte lägga till kort: " + e.getMessage());
         }
     }
 
     private void confirmAndDeleteCard(Integer cardId) {
-        int res = JOptionPane.showConfirmDialog(this,
+        int res = JOptionPane.showConfirmDialog(
+                this,
                 "Är du säker på att du vill ta bort detta kort?",
                 "Bekräfta radering",
                 JOptionPane.YES_NO_OPTION,
-                JOptionPane.WARNING_MESSAGE);
+                JOptionPane.WARNING_MESSAGE
+        );
+
         if (res == JOptionPane.YES_OPTION) {
             try {
                 deckController.deleteFlashcard(cardId);
                 statusLabel.setText("Kort raderat.");
-                if (currentDeck != null) {
-                    currentDeck = deckController.getDeckById(currentDeck.getId());
-                }
+
+                currentDeck = deckController.getDeckById(currentDeck.getId());
                 refreshCardsList();
+
             } catch (Exception e) {
                 JOptionPane.showMessageDialog(this, "Kunde inte radera kort: " + e.getMessage());
             }
@@ -251,20 +242,31 @@ public class EditDeckView extends JPanel {
     private void confirmAndDeleteDeck() {
         if (currentDeck == null) return;
 
-        int res = JOptionPane.showConfirmDialog(this,
+        int res = JOptionPane.showConfirmDialog(
+                this,
                 "Är du säker? Detta tar bort leken och alla kort i den.",
                 "Bekräfta radering",
                 JOptionPane.YES_NO_OPTION,
-                JOptionPane.WARNING_MESSAGE);
+                JOptionPane.WARNING_MESSAGE
+        );
+
         if (res == JOptionPane.YES_OPTION) {
             try {
                 deckController.deleteDeck(currentDeck.getId());
                 JOptionPane.showMessageDialog(this, "Leken raderades.");
-                // gå tillbaka till MyDecks och uppdatera
                 appFrame.navigateTo("MyDecks");
+
             } catch (Exception e) {
                 JOptionPane.showMessageDialog(this, "Kunde inte radera lek: " + e.getMessage());
             }
         }
+    }
+
+
+    // OBSERVER CALLBACK METHOD
+    @Override
+    public void notify(List<FlashcardDTO> updatedCards) {
+        // Ladda om kortlistan automatiskt
+        refreshCardsList();
     }
 }

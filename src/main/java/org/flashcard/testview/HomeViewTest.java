@@ -1,19 +1,19 @@
 package org.flashcard.testview;
 
-
 import org.flashcard.application.dto.DeckDTO;
 import org.flashcard.controllers.DeckController;
 import org.flashcard.controllers.UserController;
+import org.flashcard.controllers.observer.Observer;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.List;
 
-public class HomeViewTest extends JPanel {
+public class HomeViewTest extends JPanel implements Observer<List<DeckDTO>> {
 
     private final DeckController deckController;
     private final UserController userController;
-    private final AppFrame appFrame; // För navigering
+    private final AppFrame appFrame;
 
     private JPanel gridPanel;
 
@@ -21,6 +21,9 @@ public class HomeViewTest extends JPanel {
         this.deckController = deckController;
         this.userController = userController;
         this.appFrame = appFrame;
+
+        // REGISTRERA OBSERVER
+        deckController.getDecksObservable().addListener(this);
 
         setLayout(new BorderLayout());
         setBackground(new Color(245, 245, 245));
@@ -32,11 +35,10 @@ public class HomeViewTest extends JPanel {
         add(title, BorderLayout.NORTH);
 
         // Grid Panel för korten
-        gridPanel = new JPanel(new GridLayout(0, 3, 20, 20)); // 3 kolumner, auto rader
+        gridPanel = new JPanel(new GridLayout(0, 3, 20, 20));
         gridPanel.setBackground(new Color(245, 245, 245));
         gridPanel.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 30));
 
-        // Lägg i ScrollPane ifall man har många lekar
         JScrollPane scrollPane = new JScrollPane(gridPanel);
         scrollPane.setBorder(null);
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
@@ -49,9 +51,6 @@ public class HomeViewTest extends JPanel {
         Integer userId = userController.getCurrentUserId();
         if (userId == null) return;
 
-        // 1. Hämta DTO:er med studiestatus
-        // Vi antar att du har implementerat 'getDueDecksForUser' i DeckController enligt tidigare diskussion.
-        // Om inte, använd 'getDecksWithStudyInfo' och filtrera här.
         List<DeckDTO> dueDecks = deckController.getDueDecksForUser(userId);
 
         if (dueDecks.isEmpty()) {
@@ -60,9 +59,11 @@ public class HomeViewTest extends JPanel {
             gridPanel.add(emptyLabel);
         } else {
             for (DeckDTO deck : dueDecks) {
-                // Visa bara decks som har kort att plugga (om metoden returnerar alla)
                 if (deck.getDueCount() > 0) {
-                    DeckCard card = new DeckCard(deck, e -> appFrame.startStudySession(deck.getId(), "today"));
+                    DeckCard card = new DeckCard(
+                            deck,
+                            e -> appFrame.startStudySession(deck.getId(), "today")
+                    );
                     gridPanel.add(card);
                 }
             }
@@ -70,5 +71,11 @@ public class HomeViewTest extends JPanel {
 
         gridPanel.revalidate();
         gridPanel.repaint();
+    }
+
+    // OBSERVER CALLBACK METHOD
+    @Override
+    public void notify(List<DeckDTO> updatedDecks) {
+        refreshData();
     }
 }

@@ -1,0 +1,23 @@
+package org.flashcard.controllers.observer;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class Observable<T> {
+
+    private final List<Observer<T>> listeners = new ArrayList<>();
+
+    public void addListener(Observer<T> l) {
+        listeners.add(l);
+    }
+
+    public void removeListener(Observer<T> l) {
+        listeners.remove(l);
+    }
+
+    public void notifyListeners(T data) {
+        for (Observer<T> listener : listeners) {
+            listener.notify(data);
+        }
+    }
+}
