@@ -68,7 +68,7 @@ public class Deck {
     public Tag getTag() { return tag; }
     public void setTag(Tag tag) { this.tag = tag; }
 
-    public List<Flashcard> getCards() {
+    public static List<Flashcard> getCards() {
         return cards;
     }
 
