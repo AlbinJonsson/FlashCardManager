@@ -4,9 +4,12 @@ import org.flashcard.application.dto.DeckDTO;
 import org.flashcard.controllers.DeckController;
 import org.flashcard.controllers.UserController;
 import org.flashcard.controllers.observer.Observer;
+import org.flashcard.models.dataclasses.Deck;
 
+import javax.lang.model.type.DeclaredType;
 import javax.swing.*;
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.List;
 
 public class MyDecksView extends JPanel implements Observer<List<DeckDTO>> {
@@ -61,6 +64,21 @@ public class MyDecksView extends JPanel implements Observer<List<DeckDTO>> {
         scrollPane.setBorder(null);
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
         add(scrollPane, BorderLayout.CENTER);
+    }
+    public List<DeckDTO> filteredDecks(String query){
+
+        Integer userId = userController.getCurrentUserId();
+        List<DeckDTO> allDecks = deckController.getAllDecksForUser(userId);
+        List<DeckDTO> filteredDecks = new ArrayList<DeckDTO>();
+        if (query == null || query.isEmpty()){
+            return allDecks;
+        }
+
+        for (DeckDTO deckDTO : allDecks)
+            if (deckDTO.getTitle().toLowerCase().startsWith(query.toLowerCase())) {
+                filteredDecks.add(deckDTO);
+        }
+        return filteredDecks;
     }
 
     public void refreshData() {
