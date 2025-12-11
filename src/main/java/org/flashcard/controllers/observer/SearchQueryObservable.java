@@ -3,11 +3,7 @@ package org.flashcard.controllers.observer;
 import java.util.ArrayList;
 import java.util.List;
 
-// En klass som hanterar en lista av observers (listeners)
-// och notifierar dem när en händelse inträffar
-
-public class Observable<T> {
-
+public class SearchQueryObservable<T> {
     private final List<Observer<T>> listeners = new ArrayList<>();
 
     // Metod för att lägga till en listener
@@ -27,3 +23,4 @@ public class Observable<T> {
     }
 
 }
+

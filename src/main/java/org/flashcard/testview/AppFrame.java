@@ -54,7 +54,7 @@ public class AppFrame extends JFrame {
     }
 
     private void initComponents() {
-        navbar = new Navbar(this::navigateTo);
+        navbar = new Navbar(deckController, this::navigateTo);
         add(navbar, BorderLayout.NORTH);
 
         cardLayout = new CardLayout();
@@ -81,8 +81,14 @@ public class AppFrame extends JFrame {
 
     public void navigateTo(String viewName) {
         // Uppdatera datan i vyerna när vi byter till dem
-        if ("Home".equals(viewName)) homeView.refreshData();
-        if ("MyDecks".equals(viewName)) myDecksView.refreshData();
+        if ("Home".equals(viewName)){
+            homeView.refreshData();
+            navbar.resetSearchBar();
+        }
+        if ("MyDecks".equals(viewName)) {
+            myDecksView.refreshData();
+            navbar.resetSearchBar();
+        }
 
         cardLayout.show(mainContentPanel, viewName);
     }
@@ -93,7 +99,7 @@ public class AppFrame extends JFrame {
     public EditDeckView getEditDeckView() { return editDeckView; }
 
     // Uppdaterad metod: Tar emot 'strategy' ("today" eller "all")
-    public void startStudySession(int deckId, String strategy) {
+    public void startStudySession(int deckId, String studyMode) {
         try {
             Integer userId = userController.getCurrentUserId();
             if (userId == null) {
@@ -102,10 +108,10 @@ public class AppFrame extends JFrame {
             }
 
             // Starta sessionen i controllern
-            studyController.startSession(strategy, deckId, userId);
+            studyController.startSession(studyMode, deckId, userId);
 
             // Konfigurera vyn (Skicka med strategin så vyn vet om den ska visa knappar eller ej)
-            studyView.initSession(strategy);
+            studyView.initSession(studyMode);
 
             cardLayout.show(mainContentPanel, "Study");
 

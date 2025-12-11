@@ -26,7 +26,7 @@ public class StudyView extends JPanel implements Observer<FlashcardDTO> {
 
 
     private FlashcardDTO currentCard;
-    private String currentMode; // "today" eller "all"
+    private String studyMode; // "today" eller "all"
 
     // Observer for session finished
     private final Observer<Boolean> finishedListener = finished -> {
@@ -115,8 +115,8 @@ public class StudyView extends JPanel implements Observer<FlashcardDTO> {
         ratingPanel.add(btn);
     }
 
-    public void initSession(String currentMode) {
-        this.currentMode = currentMode;
+    public void initSession(String studyMode) {
+        this.studyMode = studyMode;
 
         // Previously you called loadNextCard() here, now StudyController does it
     }
@@ -156,7 +156,7 @@ public class StudyView extends JPanel implements Observer<FlashcardDTO> {
             showAnswerButton.setVisible(false);
 
             // Visa rätt kontroller baserat på mode
-            if ("all".equalsIgnoreCase(currentMode)) {
+            if ("all".equalsIgnoreCase(studyMode)) {
                 nextButton.setVisible(true);
             } else {
                 ratingPanel.setVisible(true);

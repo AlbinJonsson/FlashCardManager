@@ -4,6 +4,7 @@ import org.flashcard.application.dto.DeckDTO;
 import org.flashcard.controllers.DeckController;
 import org.flashcard.controllers.UserController;
 import org.flashcard.controllers.observer.Observer;
+import org.flashcard.controllers.observer.SearchQueryObservable;
 import org.flashcard.models.dataclasses.Deck;
 
 import javax.lang.model.type.DeclaredType;
@@ -17,6 +18,9 @@ public class MyDecksView extends JPanel implements Observer<List<DeckDTO>> {
     private final DeckController deckController;
     private final UserController userController;
     private final AppFrame appFrame;
+    private String searchQuery = "";
+    private List<DeckDTO> currentDecks;
+
 
     private JPanel gridPanel;
 
@@ -24,9 +28,12 @@ public class MyDecksView extends JPanel implements Observer<List<DeckDTO>> {
         this.deckController = deckController;
         this.userController = userController;
         this.appFrame = appFrame;
+        Integer userId = userController.getCurrentUserId();
+        currentDecks = deckController.getAllDecksForUser(userId);
 
         // REGISTRERA OBSERVER
         deckController.getDecksObservable().addListener(this);
+        deckController.getQueryObservable().addListener(this::updateQuery);
 
         setLayout(new BorderLayout());
         setBackground(new Color(245, 245, 245));
@@ -65,36 +72,39 @@ public class MyDecksView extends JPanel implements Observer<List<DeckDTO>> {
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
         add(scrollPane, BorderLayout.CENTER);
     }
-    public List<DeckDTO> filteredDecks(String query){
 
-        Integer userId = userController.getCurrentUserId();
-        List<DeckDTO> allDecks = deckController.getAllDecksForUser(userId);
+    public List<DeckDTO> filteredDecks(String searchQuery) {
+
+
         List<DeckDTO> filteredDecks = new ArrayList<DeckDTO>();
-        if (query == null || query.isEmpty()){
-            return allDecks;
+        if (currentDecks == null){
+            return new ArrayList<>();
+        }
+        if (searchQuery == null || searchQuery.isEmpty()) {
+            return currentDecks;
         }
 
-        for (DeckDTO deckDTO : allDecks)
-            if (deckDTO.getTitle().toLowerCase().startsWith(query.toLowerCase())) {
+        for (DeckDTO deckDTO : currentDecks)
+            if (deckDTO.getTitle().toLowerCase().startsWith(searchQuery.toLowerCase())) {
                 filteredDecks.add(deckDTO);
-        }
+            }
         return filteredDecks;
     }
 
     public void refreshData() {
         gridPanel.removeAll();
+        List<DeckDTO> updatedDecks = currentDecks;
+        if (filteredDecks(searchQuery) != null && !searchQuery.equals("Search...")){
 
-        Integer userId = userController.getCurrentUserId();
-        if (userId == null) return;
+            updatedDecks = filteredDecks(searchQuery);
+        }
 
-        List<DeckDTO> allDecks = deckController.getAllDecksForUser(userId);
-
-        if (allDecks.isEmpty()) {
+        if (updatedDecks.isEmpty()) {
             JLabel emptyLabel = new JLabel("You don’t have any decks yet. Create one!");
             emptyLabel.setHorizontalAlignment(SwingConstants.CENTER);
             gridPanel.add(emptyLabel);
         } else {
-            for (DeckDTO deck : allDecks) {
+            for (DeckDTO deck : updatedDecks) {
 
                 JPanel wrapper = new JPanel();
                 wrapper.setLayout(new BorderLayout());
@@ -133,6 +143,13 @@ public class MyDecksView extends JPanel implements Observer<List<DeckDTO>> {
     // OBSERVER CALLBACK METHOD
     @Override
     public void notify(List<DeckDTO> updatedDecks) {
+        currentDecks = updatedDecks;
         SwingUtilities.invokeLater(this::refreshData);
+    }
+    public void updateQuery(String searchQuery){
+        this.searchQuery = searchQuery;
+        refreshData();
+
+
     }
 }

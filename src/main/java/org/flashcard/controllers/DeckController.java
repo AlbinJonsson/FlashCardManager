@@ -7,6 +7,7 @@ import org.flashcard.application.mapper.DeckMapper;
 import org.flashcard.application.mapper.FlashcardMapper;
 import org.flashcard.application.mapper.TagMapper;
 import org.flashcard.controllers.observer.Observable;   // <-- OBSERVER
+import org.flashcard.controllers.observer.SearchQueryObservable;
 import org.flashcard.models.dataclasses.*;
 import org.flashcard.models.progress.FlashcardProgression;
 import org.flashcard.models.ratingstrategy.BaseIntervalStrategy;
@@ -30,6 +31,7 @@ public class DeckController {
     // Observer pattern implementation
     private final Observable<List<DeckDTO>> decksObservable = new Observable<>();
     private final Observable<List<FlashcardDTO>> flashcardsObservable = new Observable<>();
+    private final Observable<String> queryObservable = new Observable<>();
 
     public Observable<List<DeckDTO>> getDecksObservable() {
         return decksObservable;
@@ -39,7 +41,7 @@ public class DeckController {
         return flashcardsObservable;
     }
 
-
+    public Observable<String> getQueryObservable(){return queryObservable;}
     private final DeckRepository deckRepo;
     private final FlashcardRepository flashcardRepo;
     private final UserRepository userRepo;
@@ -250,5 +252,12 @@ public class DeckController {
 
         CardLearningState state = flashcard.getCardLearningState();
         return FlashcardProgression.estimateDate(strategy, state);
+    }
+    public void onTextChanged(String searchQuery){
+        queryObservable.notifyListeners(searchQuery);
+    }
+
+    public void onEnterPressed(){
+
     }
 }

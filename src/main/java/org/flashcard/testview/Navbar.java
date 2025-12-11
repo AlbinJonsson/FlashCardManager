@@ -11,11 +11,16 @@ import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.util.function.Consumer;
+import org.flashcard.controllers.DeckController;
 
 public class Navbar extends JPanel{
     private final Consumer<String> navigationCallback;
     private JTextField searchBar;
-    public Navbar(Consumer<String> navigationCallback) {
+    private DeckController deckController;
+    private final String hint = "Search...";
+    private final Font lostFont = new Font("Tahoma", Font.ITALIC, 11);
+    public Navbar(DeckController deckController, Consumer<String> navigationCallback) {
+        this.deckController = deckController;
         this.navigationCallback = navigationCallback;
 
 
@@ -24,6 +29,7 @@ public class Navbar extends JPanel{
 
         add(createNavButton("Home", "Home"));
         add(createNavButton("My Decks", "MyDecks"));
+        add(createSearchBar());
     }
 
     private JButton createNavButton(String label, String viewName) {
@@ -37,38 +43,51 @@ public class Navbar extends JPanel{
     }
     private JTextField createSearchBar(){
         searchBar = new JTextField();
-        searchBar.setText("Search...");
+        searchBar.setPreferredSize(new Dimension(400, 20));
+        searchBar.setText(hint);
         searchBar.addActionListener(e -> {});
         searchBar.addFocusListener(new FocusAdapter() {
             @Override
             public void focusGained(FocusEvent e) {
+                if (searchBar.getText().equals(hint)) {
+                    searchBar.setText("");
 
+                } else {
+                    searchBar.setText(searchBar.getText());
+                }
             }
 
             @Override
             public void focusLost(FocusEvent e) {
+                if (searchBar.getText().equals(hint)|| searchBar.getText().isEmpty()) {
+                    searchBar.setText(hint);
+                    setFont(lostFont);
+                    setForeground(Color.GRAY);
+                } else {
+                    searchBar.setText(searchBar.getText());
 
+                    setForeground(Color.BLACK);
+                }
             }
         });
         searchBar.getDocument().addDocumentListener(new DocumentListener() {
             @Override
-            public void insertUpdate(DocumentEvent e) {onTextChanged();}
+            public void insertUpdate(DocumentEvent e) {deckController.onTextChanged(searchBar.getText());}
 
             @Override
-            public void removeUpdate(DocumentEvent e) {onTextChanged();}
+            public void removeUpdate(DocumentEvent e) {deckController.onTextChanged(searchBar.getText());}
 
             @Override
-            public void changedUpdate(DocumentEvent e) {onTextChanged();}
+            public void changedUpdate(DocumentEvent e) {deckController.onTextChanged(searchBar.getText());}
         });
         return searchBar;
     }
-    private String onTextChanged(){
-        return searchBar.getText();
+    public void resetSearchBar(){
+        searchBar.setText(hint);
+        setFont(lostFont);
+        setForeground(Color.GRAY);
     }
-    private void onFocusLost(){
-
-    }
-    private void onEnterPressed(){
+    public void onFocusLost(){
 
     }
 }
