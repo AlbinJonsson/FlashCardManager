@@ -21,7 +21,7 @@ public class StudyView extends JPanel implements Observer<FlashcardDTO> {
     private JPanel ratingPanel;
     private JButton nextButton;
     private JPanel intervalPanel;
-    private JButton nextButton; // NY: För Study All mode
+
 
     private FlashcardDTO currentCard;
     private String currentStrategy; // "today" eller "all"
@@ -74,7 +74,7 @@ public class StudyView extends JPanel implements Observer<FlashcardDTO> {
         JPanel ratingWrapper = new JPanel(new GridBagLayout());
         intervalPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         GridBagConstraints constraints = new GridBagConstraints();
-        addRatingIntervals();
+        updateIntervals();
         ratingPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
         ratingPanel.setVisible(false);
 
@@ -165,18 +165,18 @@ public class StudyView extends JPanel implements Observer<FlashcardDTO> {
             JOptionPane.showMessageDialog(this, "Error while rating: " + e.getMessage());
         }
     }
-    private void addRatingIntervals(){
-        JLabel text = new JLabel("ehej");
-
-        intervalPanel.add(text);
-//        intervalPanel.add(new JLabel(String.valueOf(deckController.showEstimatedDate("again", currentCard.getId()))));
-//        intervalPanel.add(new JLabel(String.valueOf(deckController.showEstimatedDate("hard", currentCard.getId()))));
-//        intervalPanel.add(new JLabel(String.valueOf(deckController.showEstimatedDate("medium", currentCard.getId()))));
-//        intervalPanel.add(new JLabel(String.valueOf(deckController.showEstimatedDate("easy", currentCard.getId()))));
+    private void updateIntervals() {
+        intervalPanel.removeAll();
+        intervalPanel.setOpaque(true);
+        intervalPanel.setBackground(Color.red);
+        if (currentCard != null) {
+            intervalPanel.add(new JLabel(String.valueOf(deckController.showEstimatedDate("again", currentCard.getId()))));
 
 
+            intervalPanel.revalidate();
+            intervalPanel.repaint();
+        }
     }
-
     // Called when sessionFinishedObservable fires
     private void handleSessionFinished() {
         JOptionPane.showMessageDialog(this, "The session is over!");
