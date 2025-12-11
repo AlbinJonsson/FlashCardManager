@@ -41,7 +41,7 @@ public class Deck {
     private Tag tag;
 
     @OneToMany(mappedBy = "deck", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Flashcard> cards;
+    private static List<Flashcard> cards;
 
     // Constructors
     public Deck() {}
