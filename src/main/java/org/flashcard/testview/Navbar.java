@@ -40,7 +40,7 @@ public class Navbar extends JPanel {
         searchBar = new SearchBar("Search Decks...", 300);
 
 
-        searchBar.getField().getDocument().addDocumentListener(new SimpleDocumentListener(() -> {
+        searchBar.getField().getDocument().addDocumentListener(new SearchListener(() -> {
             onFilterChanged.run();
         }));
 

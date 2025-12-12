@@ -3,11 +3,11 @@ package org.flashcard.testview;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
-public class SimpleDocumentListener implements DocumentListener {
+public class SearchListener implements DocumentListener {
 
     private final Runnable callback;
 
-    public SimpleDocumentListener(Runnable callback) {
+    public SearchListener(Runnable callback) {
         this.callback = callback;
     }
 
