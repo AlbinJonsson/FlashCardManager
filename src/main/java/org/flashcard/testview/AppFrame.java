@@ -66,9 +66,9 @@ public class AppFrame extends JFrame {
         mainContentPanel = new JPanel(cardLayout);
 
         homeView = new HomeView(deckController, userController, this);
-        myDecksView = new MyDecksView(deckController, userController, this);
-        createDeckView = new CreateDeckView(deckController, userController, this);
-        studyView = new StudyView(studyController, this);
+        myDecksView = new MyDecksView(deckController, userController, this); // Nu riktig klass
+        createDeckView = new CreateDeckView(deckController, userController, this); // NY
+        studyView = new StudyView(studyController,deckController, this);
         editDeckView = new EditDeckView(deckController, userController, this);
 
         mainContentPanel.add(homeView, "Home");
@@ -101,6 +101,13 @@ public class AppFrame extends JFrame {
     public CreateDeckView getCreateDeckView() {
         return createDeckView;
     }
+    private Component getCurrentVisibleView() {
+        for (Component comp : mainContentPanel.getComponents()) {
+            if (comp.isVisible()) return comp;
+        }
+        return null;
+    }
+
 
     public EditDeckView getEditDeckView() {
         return editDeckView;

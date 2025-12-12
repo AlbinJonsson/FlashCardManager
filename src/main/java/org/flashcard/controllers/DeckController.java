@@ -8,14 +8,20 @@ import org.flashcard.application.mapper.FlashcardMapper;
 import org.flashcard.application.mapper.TagMapper;
 import org.flashcard.controllers.observer.Observable;   // <-- OBSERVER
 import org.flashcard.models.dataclasses.*;
+import org.flashcard.models.progress.FlashcardProgression;
+import org.flashcard.models.ratingstrategy.BaseIntervalStrategy;
+import org.flashcard.models.progress.DeckProgression;
 import org.flashcard.repositories.DeckRepository;
 import org.flashcard.repositories.FlashcardRepository;
 import org.flashcard.repositories.TagRepository;
 import org.flashcard.repositories.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.flashcard.models.ratingstrategy.RatingStrategy;
+import org.flashcard.models.ratingstrategy.StrategyFactory;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -107,11 +113,22 @@ public class DeckController {
 
         return userDecks.stream()
                 .map(deck -> {
-                    long cardCount = flashcardRepo.countByDeckId(deck.getId());
+                    // Get cards for deck
+                    List<Flashcard> cards = flashcardRepo.findByDeck(deck);
+                    deck.setCards(cards);
+
+                    // Calculate progression
+                    double progress = DeckProgression.calculateDeckProgression(deck);
+                    deck.setDeckProgress(new DeckProgress(progress));
+
+                    // Count cards
+                    long cardCount = cards.size();
+
                     return DeckMapper.toDTO(deck, (int) cardCount);
                 })
                 .collect(Collectors.toList());
     }
+
 
     public DeckDTO getDeckById(Integer deckId) {
         Deck deck = deckRepo.findById(deckId)
@@ -124,13 +141,19 @@ public class DeckController {
 
         return userDecks.stream()
                 .map(deck -> {
+                    // Uppdatera deck progress dynamiskt
+                    double progressPercent = DeckProgression.calculateDeckProgression(deck);
+                    deck.setDeckProgress(new DeckProgress(progressPercent));
+
                     long dueCount = 0;
                     if (deck.getCards() != null) {
                         dueCount = deck.getCards().stream()
                                 .filter(this::isCardDue)
                                 .count();
                     }
-                    return DeckMapper.toDTO(deck, (int) dueCount);
+
+                    DeckDTO dto = DeckMapper.toDTO(deck, (int) dueCount); // nu innehåller deckProgress
+                    return dto;
                 })
                 .filter(dto -> dto.getDueCount() > 0)
                 .collect(Collectors.toList());
@@ -262,8 +285,12 @@ public class DeckController {
 
                 .toList();
     }
+    public long showEstimatedDate(String rating, int cardID){
+        Flashcard flashcard = flashcardRepo.findById(cardID)
+                .orElseThrow(() -> new IllegalArgumentException("Flashcard not found"));
+        RatingStrategy strategy = StrategyFactory.createStrategy(rating);
 
-
-
-
+        CardLearningState state = flashcard.getCardLearningState();
+        return FlashcardProgression.estimateDate(strategy, state);
+    }
 }

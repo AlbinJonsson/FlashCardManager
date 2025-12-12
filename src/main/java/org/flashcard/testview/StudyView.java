@@ -1,31 +1,39 @@
 package org.flashcard.testview;
 
+
 import org.flashcard.application.dto.FlashcardDTO;
+import org.flashcard.controllers.DeckController;
 import org.flashcard.controllers.StudyController;
 import org.flashcard.controllers.observer.Observer;
 
+
 import javax.swing.*;
 import java.awt.*;
+
 
 public class StudyView extends JPanel implements Observer<FlashcardDTO> {
 
     private final StudyController studyController;
     private final AppFrame appFrame;
+    private final DeckController deckController;
 
     private JTextArea cardTextArea;
     private JPanel controlsPanel;
     private JButton showAnswerButton;
     private JPanel ratingPanel;
     private JButton nextButton;
+    private JPanel intervalPanel;
+
 
     private FlashcardDTO currentCard;
-    private String currentStrategy;
+    private String currentMode; // "today" eller "all"
 
     private final Observer<Boolean> finishedListener = finished -> {
         if (finished != null && finished) handleSessionFinished();
     };
 
-    public StudyView(StudyController studyController, AppFrame appFrame) {
+    public StudyView(StudyController studyController, DeckController deckController, AppFrame appFrame) {
+        this.deckController = deckController;
         this.studyController = studyController;
         this.appFrame = appFrame;
 
@@ -37,7 +45,7 @@ public class StudyView extends JPanel implements Observer<FlashcardDTO> {
     }
 
     private void initComponents() {
-
+        // --- Card Area ---
         cardTextArea = new JTextArea();
         cardTextArea.setFont(new Font("SansSerif", Font.PLAIN, 24));
         cardTextArea.setLineWrap(true);
@@ -51,6 +59,7 @@ public class StudyView extends JPanel implements Observer<FlashcardDTO> {
 
         add(cardContainer, BorderLayout.CENTER);
 
+        // --- Controls Area ---
         controlsPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 20));
         controlsPanel.setPreferredSize(new Dimension(800, 100));
 
@@ -59,6 +68,14 @@ public class StudyView extends JPanel implements Observer<FlashcardDTO> {
         showAnswerButton.setPreferredSize(new Dimension(200, 50));
         showAnswerButton.addActionListener(e -> showBack());
 
+        // Rating Panel (För 'today' mode)
+        JPanel ratingWrapper = new JPanel();
+        ratingWrapper.setLayout(new BoxLayout(ratingWrapper, BoxLayout.Y_AXIS));
+
+        intervalPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 95, 0));
+        intervalPanel.setVisible(false);
+
+
         ratingPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
         ratingPanel.setVisible(false);
 
@@ -66,6 +83,8 @@ public class StudyView extends JPanel implements Observer<FlashcardDTO> {
         createRatingButton("Hard", "hard", new Color(255, 165, 0));
         createRatingButton("Medium", "medium", new Color(70, 130, 180));
         createRatingButton("Easy", "easy", new Color(60, 179, 113));
+        ratingWrapper.add(intervalPanel);
+        ratingWrapper.add(ratingPanel);
 
         nextButton = new JButton("Next Card →");
         nextButton.setPreferredSize(new Dimension(200, 50));
@@ -76,7 +95,7 @@ public class StudyView extends JPanel implements Observer<FlashcardDTO> {
         nextButton.setVisible(false);
 
         controlsPanel.add(showAnswerButton);
-        controlsPanel.add(ratingPanel);
+        controlsPanel.add(ratingWrapper);
         controlsPanel.add(nextButton);
 
         add(controlsPanel, BorderLayout.SOUTH);
@@ -92,8 +111,10 @@ public class StudyView extends JPanel implements Observer<FlashcardDTO> {
         ratingPanel.add(btn);
     }
 
-    public void initSession(String strategy) {
-        this.currentStrategy = strategy;
+    public void initSession(String currentMode) {
+        this.currentMode = currentMode;
+
+        // Previously you called loadNextCard() here, now StudyController does it
     }
 
     @Override
@@ -108,11 +129,13 @@ public class StudyView extends JPanel implements Observer<FlashcardDTO> {
             handleSessionFinished();
             return;
         }
+        updateIntervals();
 
         cardTextArea.setText(card.getFront());
 
         showAnswerButton.setVisible(true);
         ratingPanel.setVisible(false);
+        intervalPanel.setVisible(false);
         nextButton.setVisible(false);
 
         controlsPanel.revalidate();
@@ -130,10 +153,12 @@ public class StudyView extends JPanel implements Observer<FlashcardDTO> {
 
             showAnswerButton.setVisible(false);
 
-            if ("all".equalsIgnoreCase(currentStrategy)) {
+            // Visa rätt kontroller baserat på mode
+            if ("all".equalsIgnoreCase(currentMode)) {
                 nextButton.setVisible(true);
             } else {
                 ratingPanel.setVisible(true);
+                intervalPanel.setVisible(true);
             }
         }
     }
@@ -146,7 +171,21 @@ public class StudyView extends JPanel implements Observer<FlashcardDTO> {
             JOptionPane.showMessageDialog(this, "Error while rating: " + e.getMessage());
         }
     }
+    private void updateIntervals() {
+        intervalPanel.removeAll();
 
+        if (currentCard != null) {
+            intervalPanel.add(new JLabel(String.valueOf(deckController.showEstimatedDate("again", currentCard.getId())) + "d"));
+            intervalPanel.add(new JLabel(String.valueOf(deckController.showEstimatedDate("hard", currentCard.getId())) + "d"));
+            intervalPanel.add(new JLabel(String.valueOf(deckController.showEstimatedDate("medium", currentCard.getId())) + "d"));
+            intervalPanel.add(new JLabel(String.valueOf(deckController.showEstimatedDate("easy", currentCard.getId())) + "d"));
+
+
+            intervalPanel.revalidate();
+            intervalPanel.repaint();
+        }
+    }
+    // Called when sessionFinishedObservable fires
     private void handleSessionFinished() {
         JOptionPane.showMessageDialog(this, "The session is over!");
         appFrame.navigateTo("Home");
