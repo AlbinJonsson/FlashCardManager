@@ -4,7 +4,7 @@ package org.flashcard.testview;
 import org.flashcard.application.dto.FlashcardDTO;
 import org.flashcard.controllers.DeckController;
 import org.flashcard.controllers.StudyController;
-import org.flashcard.controllers.observer.Observer;  // NEW
+import org.flashcard.controllers.observer.Observer;
 
 
 import javax.swing.*;
@@ -28,11 +28,8 @@ public class StudyView extends JPanel implements Observer<FlashcardDTO> {
     private FlashcardDTO currentCard;
     private String currentMode; // "today" eller "all"
 
-    // Observer for session finished
     private final Observer<Boolean> finishedListener = finished -> {
-        if (finished != null && finished) {
-            handleSessionFinished();
-        }
+        if (finished != null && finished) handleSessionFinished();
     };
 
     public StudyView(StudyController studyController, DeckController deckController, AppFrame appFrame) {
@@ -40,7 +37,6 @@ public class StudyView extends JPanel implements Observer<FlashcardDTO> {
         this.studyController = studyController;
         this.appFrame = appFrame;
 
-        // Register observers
         studyController.getCurrentCardObservable().addListener(this);
         studyController.getSessionFinishedObservable().addListener(finishedListener);
 
@@ -90,7 +86,7 @@ public class StudyView extends JPanel implements Observer<FlashcardDTO> {
         ratingWrapper.add(intervalPanel);
         ratingWrapper.add(ratingPanel);
 
-        nextButton = new JButton("Next Card ->");
+        nextButton = new JButton("Next Card →");
         nextButton.setPreferredSize(new Dimension(200, 50));
         nextButton.setBackground(new Color(60, 120, 240));
         nextButton.setForeground(Color.WHITE);
@@ -121,14 +117,13 @@ public class StudyView extends JPanel implements Observer<FlashcardDTO> {
         // Previously you called loadNextCard() here, now StudyController does it
     }
 
-    // Observer callback for new card
     @Override
     public void notify(FlashcardDTO card) {
         SwingUtilities.invokeLater(() -> showNewCard(card));
     }
 
     private void showNewCard(FlashcardDTO card) {
-        this.currentCard = card;
+        currentCard = card;
 
         if (card == null) {
             handleSessionFinished();
@@ -149,9 +144,12 @@ public class StudyView extends JPanel implements Observer<FlashcardDTO> {
 
     private void showBack() {
         if (currentCard != null) {
-            cardTextArea.setText(currentCard.getFront()
-                    + "\n\n----------------\n\n"
-                    + currentCard.getBack());
+
+            cardTextArea.setText(
+                    currentCard.getFront() +
+                            "\n\n----------------\n\n" +
+                            currentCard.getBack()
+            );
 
             showAnswerButton.setVisible(false);
 
@@ -168,7 +166,7 @@ public class StudyView extends JPanel implements Observer<FlashcardDTO> {
     private void applyRating(String rating) {
         try {
             studyController.applyRating(rating, currentCard.getId());
-            studyController.nextCard();  // Observer will handle UI update
+            studyController.nextCard();
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Error while rating: " + e.getMessage());
         }

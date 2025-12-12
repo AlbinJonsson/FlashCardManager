@@ -22,88 +22,83 @@ public class MyDecksView extends JPanel implements Observer<List<DeckDTO>> {
         this.userController = userController;
         this.appFrame = appFrame;
 
-        // REGISTRERA OBSERVER
         deckController.getDecksObservable().addListener(this);
 
         setLayout(new BorderLayout());
-        setBackground(new Color(245, 245, 245));
+        setBackground(Color.WHITE);
 
-        // Header Panel (Titel + Create Button)
-        JPanel headerPanel = new JPanel(new BorderLayout());
-        headerPanel.setBackground(new Color(245, 245, 245));
-        headerPanel.setBorder(BorderFactory.createEmptyBorder(20, 30, 10, 30));
+        // Header
+        JPanel top = new JPanel(new BorderLayout());
+        top.setOpaque(false);
+        top.setBorder(BorderFactory.createEmptyBorder(20, 25, 10, 25));
 
         JLabel title = new JLabel("My Decks");
         title.setFont(new Font("SansSerif", Font.BOLD, 24));
 
-        JButton createButton = new JButton("+ Create New Deck");
-        createButton.setBackground(new Color(46, 204, 113)); // Grön
-        createButton.setForeground(Color.WHITE);
-        createButton.setFocusPainted(false);
-        createButton.setFont(new Font("SansSerif", Font.BOLD, 14));
-        createButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        createButton.addActionListener(e -> {
+        JButton create = new JButton("+ Create New Deck");
+        create.setBackground(new Color(46, 204, 113));
+        create.setForeground(Color.WHITE);
+        create.setFocusPainted(false);
+        create.addActionListener(e -> {
             appFrame.getCreateDeckView().resetFormForNewDeck();
             appFrame.navigateTo("CreateDeck");
         });
 
-        headerPanel.add(title, BorderLayout.WEST);
-        headerPanel.add(createButton, BorderLayout.EAST);
+        top.add(title, BorderLayout.WEST);
+        top.add(create, BorderLayout.EAST);
 
-        add(headerPanel, BorderLayout.NORTH);
+        add(top, BorderLayout.NORTH);
 
-        // --- Grid Panel ---
+        // Grid
         gridPanel = new JPanel(new GridLayout(0, 3, 20, 20));
-        gridPanel.setBackground(new Color(245, 245, 245));
+        gridPanel.setBackground(Color.WHITE);
         gridPanel.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 30));
 
+
         JScrollPane scrollPane = new JScrollPane(gridPanel);
-        scrollPane.setBorder(null);
-        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        scrollPane.setBorder(null); // <-- tar bort linjen
         add(scrollPane, BorderLayout.CENTER);
+
     }
 
-    public void refreshData() {
+    public void applyFilter(String text, Integer tagId) {
+        refreshData(text, tagId);
+    }
+
+    public void refreshData(String text, Integer tagId) {
         gridPanel.removeAll();
 
         Integer userId = userController.getCurrentUserId();
-        if (userId == null) return;
+        List<DeckDTO> decks = deckController.searchDecks(userId, text, tagId);
 
-        List<DeckDTO> allDecks = deckController.getAllDecksForUser(userId);
-
-        if (allDecks.isEmpty()) {
-            JLabel emptyLabel = new JLabel("You don’t have any decks yet. Create one!");
-            emptyLabel.setHorizontalAlignment(SwingConstants.CENTER);
-            gridPanel.add(emptyLabel);
+        if (decks.isEmpty()) {
+            JLabel lbl = new JLabel("No decks found.");
+            lbl.setHorizontalAlignment(SwingConstants.CENTER);
+            gridPanel.add(lbl);
         } else {
-            for (DeckDTO deck : allDecks) {
-
-                JPanel wrapper = new JPanel();
-                wrapper.setLayout(new BorderLayout());
+            for (DeckDTO d : decks) {
+                JPanel wrapper = new JPanel(new BorderLayout());
                 wrapper.setOpaque(false);
 
-                DeckCard card = new DeckCard(deck, e -> appFrame.startStudySession(deck.getId(), "all"));
+                DeckCard card = new DeckCard(d,
+                        e -> appFrame.startStudySession(d.getId(), "all"));
                 wrapper.add(card, BorderLayout.CENTER);
-
-                JPanel btnRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 8, 6));
-                btnRow.setBackground(new Color(245, 245, 245));
 
                 JButton editBtn = new JButton("Edit");
                 editBtn.setPreferredSize(new Dimension(90, 28));
                 editBtn.setBackground(new Color(70, 130, 180));
                 editBtn.setForeground(Color.WHITE);
-                editBtn.setFocusPainted(false);
                 editBtn.addActionListener(e -> {
-                    try {
-                        appFrame.getEditDeckView().loadDeck(deck.getId());
-                        appFrame.navigateTo("EditDeck");
-                    } catch (Exception ex) {
-                        JOptionPane.showMessageDialog(this, "Couldn't open edit view " + ex.getMessage());
-                    }
+                    appFrame.getEditDeckView().loadDeck(d.getId());
+                    appFrame.navigateTo("EditDeck");
                 });
 
-                btnRow.add(editBtn);
-                wrapper.add(btnRow, BorderLayout.SOUTH);
+                JPanel panel = new JPanel();
+                panel.setOpaque(false);
+                panel.add(editBtn);
+
+                wrapper.add(panel, BorderLayout.SOUTH);
+
                 gridPanel.add(wrapper);
             }
         }
@@ -112,9 +107,8 @@ public class MyDecksView extends JPanel implements Observer<List<DeckDTO>> {
         gridPanel.repaint();
     }
 
-    // OBSERVER CALLBACK METHOD
     @Override
-    public void notify(List<DeckDTO> updatedDecks) {
-        SwingUtilities.invokeLater(this::refreshData);
+    public void notify(List<DeckDTO> data) {
+        refreshData(null, null);
     }
 }

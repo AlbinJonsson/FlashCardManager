@@ -5,13 +5,13 @@ import org.flashcard.application.dto.DeckDTO;
 import org.flashcard.controllers.DeckController;
 import org.flashcard.controllers.UserController;
 
-import org.flashcard.controllers.observer.Observer; // NEW
+import org.flashcard.controllers.observer.Observer;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.List;
 
-public class EditDeckView extends JPanel implements Observer<List<FlashcardDTO>> {  // NEW
+public class EditDeckView extends JPanel implements Observer<List<FlashcardDTO>> {
 
     private final DeckController deckController;
     private final UserController userController;
@@ -34,7 +34,6 @@ public class EditDeckView extends JPanel implements Observer<List<FlashcardDTO>>
         this.userController = userController;
         this.appFrame = appFrame;
 
-        // registrera observer
         deckController.getFlashcardsObservable().addListener(this);
 
         setLayout(new BorderLayout());
@@ -43,7 +42,6 @@ public class EditDeckView extends JPanel implements Observer<List<FlashcardDTO>>
     }
 
     private void initComponents() {
-
 
         JPanel top = new JPanel(new BorderLayout());
         top.setBackground(new Color(245, 245, 245));
@@ -124,10 +122,10 @@ public class EditDeckView extends JPanel implements Observer<List<FlashcardDTO>>
         try {
             currentDeck = deckController.getDeckById(deckId);
             headerLabel.setText("Edit: " + currentDeck.getTitle());
-            statusLabel.setText("Loaded deck (ID " + currentDeck.getId() + ")");
+            statusLabel.setText("Loaded deck ID " + currentDeck.getId());
             refreshCardsList();
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Couldn't load the Deck: " + e.getMessage());
+            JOptionPane.showMessageDialog(this, "Couldn't load deck: " + e.getMessage());
         }
     }
 
@@ -164,10 +162,13 @@ public class EditDeckView extends JPanel implements Observer<List<FlashcardDTO>>
         JPanel text = new JPanel();
         text.setLayout(new BoxLayout(text, BoxLayout.Y_AXIS));
         text.setBackground(Color.WHITE);
+
         JLabel front = new JLabel("<html><b>Q:</b> " + safe(card.getFront()) + "</html>");
         JLabel back = new JLabel("<html><b>A:</b> " + safe(card.getBack()) + "</html>");
+
         front.setBorder(BorderFactory.createEmptyBorder(6,6,6,6));
         back.setBorder(BorderFactory.createEmptyBorder(0,6,6,6));
+
         text.add(front);
         text.add(back);
 
@@ -182,6 +183,7 @@ public class EditDeckView extends JPanel implements Observer<List<FlashcardDTO>>
 
         row.add(text, BorderLayout.CENTER);
         row.add(actions, BorderLayout.EAST);
+
         return row;
     }
 
@@ -191,19 +193,21 @@ public class EditDeckView extends JPanel implements Observer<List<FlashcardDTO>>
 
     private void handleAddCard() {
         if (currentDeck == null) {
-            JOptionPane.showMessageDialog(this, "No Deck chosen.");
+            JOptionPane.showMessageDialog(this, "No deck selected.");
             return;
         }
+
         String front = newFrontField.getText().trim();
         String back = newBackField.getText().trim();
 
         if (front.isBlank() || back.isBlank()) {
-            JOptionPane.showMessageDialog(this, "Both front and back are required.");
+            JOptionPane.showMessageDialog(this, "Both fields required.");
             return;
         }
 
         try {
             deckController.addFlashcard(currentDeck.getId(), front, back);
+
             newFrontField.setText("");
             newBackField.setText("");
             statusLabel.setText("Card added.");
@@ -211,8 +215,8 @@ public class EditDeckView extends JPanel implements Observer<List<FlashcardDTO>>
             currentDeck = deckController.getDeckById(currentDeck.getId());
             refreshCardsList();
 
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Couldn't add the Card " + e.getMessage());
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Couldn't add card: " + ex.getMessage());
         }
     }
 
@@ -233,8 +237,8 @@ public class EditDeckView extends JPanel implements Observer<List<FlashcardDTO>>
                 currentDeck = deckController.getDeckById(currentDeck.getId());
                 refreshCardsList();
 
-            } catch (Exception e) {
-                JOptionPane.showMessageDialog(this, "Couldn't delete card " + e.getMessage());
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Couldn't delete card: " + ex.getMessage());
             }
         }
     }
@@ -244,7 +248,7 @@ public class EditDeckView extends JPanel implements Observer<List<FlashcardDTO>>
 
         int res = JOptionPane.showConfirmDialog(
                 this,
-                "Are you sure? This will delete the deck and all cards in it.",
+                "Are you sure? This will delete the deck and all cards.",
                 "Confirm deletion",
                 JOptionPane.YES_NO_OPTION,
                 JOptionPane.WARNING_MESSAGE
@@ -255,18 +259,14 @@ public class EditDeckView extends JPanel implements Observer<List<FlashcardDTO>>
                 deckController.deleteDeck(currentDeck.getId());
                 JOptionPane.showMessageDialog(this, "Deck deleted.");
                 appFrame.navigateTo("MyDecks");
-
             } catch (Exception e) {
-                JOptionPane.showMessageDialog(this, "Couldn't delete Deck " + e.getMessage());
+                JOptionPane.showMessageDialog(this, "Couldn't delete deck: " + e.getMessage());
             }
         }
     }
 
-
-    // OBSERVER CALLBACK METHOD
     @Override
     public void notify(List<FlashcardDTO> updatedCards) {
-        // Ladda om kortlistan automatiskt
         SwingUtilities.invokeLater(this::refreshCardsList);
     }
 }

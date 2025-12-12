@@ -22,50 +22,48 @@ public class HomeView extends JPanel implements Observer<List<DeckDTO>> {
         this.userController = userController;
         this.appFrame = appFrame;
 
-        // REGISTRERA OBSERVER
         deckController.getDecksObservable().addListener(this);
 
         setLayout(new BorderLayout());
-        setBackground(new Color(245, 245, 245));
+        setBackground(Color.WHITE);
 
-        // Header
         JLabel title = new JLabel("To be rehearsed Today");
         title.setFont(new Font("SansSerif", Font.BOLD, 24));
-        title.setBorder(BorderFactory.createEmptyBorder(20, 30, 10, 30));
+        title.setBorder(BorderFactory.createEmptyBorder(20, 25, 10, 25));
         add(title, BorderLayout.NORTH);
 
-        // Grid Panel för korten
         gridPanel = new JPanel(new GridLayout(0, 3, 20, 20));
-        gridPanel.setBackground(new Color(245, 245, 245));
+        gridPanel.setBackground(Color.WHITE);
         gridPanel.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 30));
 
+        // ⬇⬇⬇ NYTT: nu skapar vi scrollPane som variabel och tar bort border
         JScrollPane scrollPane = new JScrollPane(gridPanel);
-        scrollPane.setBorder(null);
-        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        scrollPane.setBorder(null); // <-- tar bort tunna svarta linjen
         add(scrollPane, BorderLayout.CENTER);
+        // ⬆⬆⬆ END NEW
     }
 
-    public void refreshData() {
+    public void applyFilter(String text, Integer tagId) {
+        refreshData(text, tagId);
+    }
+
+    public void refreshData(String text, Integer tagId) {
         gridPanel.removeAll();
 
         Integer userId = userController.getCurrentUserId();
-        if (userId == null) return;
+        List<DeckDTO> decks = deckController.searchDecks(userId, text, tagId)
+                .stream()
+                .filter(d -> d.getDueCount() > 0)
+                .toList();
 
-        List<DeckDTO> dueDecks = deckController.getDueDecksForUser(userId);
-
-        if (dueDecks.isEmpty()) {
-            JLabel emptyLabel = new JLabel("No cards to study today! Great job.");
-            emptyLabel.setHorizontalAlignment(SwingConstants.CENTER);
-            gridPanel.add(emptyLabel);
+        if (decks.isEmpty()) {
+            JLabel lbl = new JLabel("No cards to study today!");
+            lbl.setHorizontalAlignment(SwingConstants.CENTER);
+            gridPanel.add(lbl);
         } else {
-            for (DeckDTO deck : dueDecks) {
-                if (deck.getDueCount() > 0) {
-                    DeckCard card = new DeckCard(
-                            deck,
-                            e -> appFrame.startStudySession(deck.getId(), "today")
-                    );
-                    gridPanel.add(card);
-                }
+            for (DeckDTO d : decks) {
+                gridPanel.add(new DeckCard(d,
+                        e -> appFrame.startStudySession(d.getId(), "today")));
             }
         }
 
@@ -73,9 +71,8 @@ public class HomeView extends JPanel implements Observer<List<DeckDTO>> {
         gridPanel.repaint();
     }
 
-    // OBSERVER CALLBACK METHOD
     @Override
-    public void notify(List<DeckDTO> updatedDecks) {
-        SwingUtilities.invokeLater(this::refreshData);
+    public void notify(List<DeckDTO> data) {
+        refreshData(null, null);
     }
 }
