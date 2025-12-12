@@ -35,7 +35,6 @@ public class Navbar extends JPanel {
         add(createUserDropdownButton());
         add(createNavButton("Home", "Home"));
         add(createNavButton("My Decks", "MyDecks"));
-        add(createSearchBar());
 
 
         // Subscribe to user changes
@@ -149,56 +148,5 @@ public class Navbar extends JPanel {
         return btn;
     }
 
-    private JTextField createSearchBar() {
-        searchBar = new JTextField();
-        searchBar.setPreferredSize(new Dimension(400, 20));
-        searchBar.setText(hint);
-        searchBar.addActionListener(e -> {});
-
-        searchBar.addFocusListener(new FocusAdapter() {
-            @Override
-            public void focusGained(FocusEvent e) {
-                if (searchBar.getText().equals(hint)) {
-                    searchBar.setText("");
-                }
-            }
-
-            @Override
-            public void focusLost(FocusEvent e) {
-                if (searchBar.getText().isEmpty()) {
-                    searchBar.setText(hint);
-                    searchBar.setFont(lostFont);
-                    searchBar.setForeground(Color.GRAY);
-                } else {
-                    searchBar.setForeground(Color.BLACK);
-                }
-            }
-        });
-
-        searchBar.getDocument().addDocumentListener(new DocumentListener() {
-            @Override
-            public void insertUpdate(DocumentEvent e) {
-                deckController.onTextChanged(searchBar.getText());
-            }
-
-            @Override
-            public void removeUpdate(DocumentEvent e) {
-                deckController.onTextChanged(searchBar.getText());
-            }
-
-            @Override
-            public void changedUpdate(DocumentEvent e) {
-                deckController.onTextChanged(searchBar.getText());
-            }
-        });
-
-        return searchBar;
-    }
-
-    public void resetSearchBar() {
-        searchBar.setText(hint);
-        searchBar.setFont(lostFont);
-        searchBar.setForeground(Color.GRAY);
-    }
 
 }

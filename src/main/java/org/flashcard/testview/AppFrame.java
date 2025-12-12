@@ -83,11 +83,9 @@ public class AppFrame extends JFrame {
         // Uppdatera datan i vyerna när vi byter till dem
         if ("Home".equals(viewName)){
             homeView.refreshData();
-            navbar.resetSearchBar();
         }
         if ("MyDecks".equals(viewName)) {
             myDecksView.refreshData();
-            navbar.resetSearchBar();
         }
 
         cardLayout.show(mainContentPanel, viewName);
