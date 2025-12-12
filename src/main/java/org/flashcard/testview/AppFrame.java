@@ -54,7 +54,7 @@ public class AppFrame extends JFrame {
     }
 
     private void initComponents() {
-        navbar = new Navbar(deckController, this::navigateTo);
+        navbar = new Navbar(deckController, userController, this::navigateTo);
         add(navbar, BorderLayout.NORTH);
 
         cardLayout = new CardLayout();

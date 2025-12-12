@@ -6,6 +6,7 @@ import org.flashcard.application.dto.UserDTO;
 import org.flashcard.application.mapper.DeckMapper;
 import org.flashcard.application.mapper.TagMapper;
 import org.flashcard.application.mapper.UserMapper;
+import org.flashcard.controllers.observer.Observable;
 import org.flashcard.models.dataclasses.Deck;
 import org.flashcard.models.dataclasses.Tag;
 import org.flashcard.models.dataclasses.User;
@@ -37,12 +38,21 @@ import java.util.stream.Collectors;
 @Transactional
 public class UserController {
 
+
+
     private final UserRepository userRepo;
     private final DeckRepository deckRepo;
     private final TagRepository tagRepo;
 
+    private final Observable<UserDTO> currentUserObservable = new Observable<>();
+
+    public Observable<UserDTO> getCurrentUserObservable() {
+        return currentUserObservable;
+    }
 
     private User currentUser;
+
+
 
     public UserController(UserRepository userRepo,
                           DeckRepository deckRepo,
@@ -51,6 +61,8 @@ public class UserController {
         this.deckRepo = deckRepo;
         this.tagRepo = tagRepo;
     }
+
+
 
     // ---User CRUD---
 
@@ -71,6 +83,8 @@ public class UserController {
                 .map(UserMapper::toDTO)
                 .collect(Collectors.toList());
     }
+
+
     public User getUserByIdEntity(Integer userId) {
         return userRepo.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
@@ -102,6 +116,9 @@ public class UserController {
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         this.currentUser = user;
+
+        // Notify all observers
+        currentUserObservable.notifyListeners(getCurrentUser());
     }
 
 
