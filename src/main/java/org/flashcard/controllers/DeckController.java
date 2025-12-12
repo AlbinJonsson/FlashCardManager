@@ -50,6 +50,9 @@ public class DeckController {
         this.tagRepo = tagRepo;
     }
 
+
+
+
     // --- Deck CRUD ---
 
     public DeckDTO createDeck(Integer userId, String title) {
@@ -238,4 +241,33 @@ public class DeckController {
         flashcardsObservable.notifyListeners(getFlashcardsForDeck(deckId));
         // --------------------------------------------------------------------
     }
+
+    // Search / Filter
+    public List<DeckDTO> searchDecks(Integer userId, String text, Integer tagId) {
+
+        List<DeckDTO> decks = getAllDecksForUser(userId);
+
+        // TEXT FILTER: matcha tag.title (om text ges)
+        if (text != null && !text.isBlank()) {
+            String lower = text.toLowerCase();
+            decks = decks.stream()
+                    .filter(d -> {
+                        if (d.getTagDTO() == null) return false;
+                        return d.getTagDTO().getTitle().toLowerCase().contains(lower);
+                    })
+                    .collect(Collectors.toList());
+        }
+
+        // TAG FILTER: matcha id (säkert jämförande)
+        if (tagId != null) {
+            decks = decks.stream()
+                    .filter(d -> d.getTagDTO() != null && d.getTagDTO().getId() == tagId)
+                    .collect(Collectors.toList());
+        }
+
+        return decks;
+    }
+
+
+
 }

@@ -9,20 +9,18 @@ import java.awt.*;
 
 public class AppFrame extends JFrame {
 
-    // Controllers
     private final UserController userController;
     private final StudyController studyController;
     private final DeckController deckController;
 
-    // UI Components
     private CardLayout cardLayout;
     private JPanel mainContentPanel;
+
     private Navbar navbar;
 
-    // Views
     private HomeView homeView;
-    private MyDecksView myDecksView; // Inte längre placeholder
-    private CreateDeckView createDeckView; // NY
+    private MyDecksView myDecksView;
+    private CreateDeckView createDeckView;
     private StudyView studyView;
     private EditDeckView editDeckView;
 
@@ -38,39 +36,44 @@ public class AppFrame extends JFrame {
 
     private void initFrame() {
         setTitle("Flashcard APP");
-        setSize(1200, 800);
-        setLocationRelativeTo(null);
+        setSize(1200, 850);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
         setLayout(new BorderLayout());
     }
 
     private void autoLoginForTesting() {
         try {
             userController.loginByUserId(1);
-            System.out.println("DEBUG: Auto-logged in as User ID 1");
         } catch (Exception e) {
-            System.err.println("DEBUG: Kunde inte autologga in: " + e.getMessage());
+            System.err.println("Auto-login failed: " + e.getMessage());
         }
     }
 
     private void initComponents() {
-        navbar = new Navbar(this::navigateTo);
+
+        // Navbar med filter callbacks
+
+        navbar = new Navbar(
+                this::navigateTo,
+                this::applyFilters,    // Runnable, AppFrame läser navbar.getSearchText()
+                userController
+        );
         add(navbar, BorderLayout.NORTH);
+
 
         cardLayout = new CardLayout();
         mainContentPanel = new JPanel(cardLayout);
-        mainContentPanel.setBackground(new Color(245, 245, 245));
 
-        // --- Initiera Vyer ---
         homeView = new HomeView(deckController, userController, this);
-        myDecksView = new MyDecksView(deckController, userController, this); // Nu riktig klass
-        createDeckView = new CreateDeckView(deckController, userController, this); // NY
+        myDecksView = new MyDecksView(deckController, userController, this);
+        createDeckView = new CreateDeckView(deckController, userController, this);
         studyView = new StudyView(studyController, this);
         editDeckView = new EditDeckView(deckController, userController, this);
 
         mainContentPanel.add(homeView, "Home");
         mainContentPanel.add(myDecksView, "MyDecks");
-        mainContentPanel.add(createDeckView, "CreateDeck"); // Lägg till i layouten
+        mainContentPanel.add(createDeckView, "CreateDeck");
         mainContentPanel.add(studyView, "Study");
         mainContentPanel.add(editDeckView, "EditDeck");
 
@@ -79,39 +82,44 @@ public class AppFrame extends JFrame {
         navigateTo("Home");
     }
 
-    public void navigateTo(String viewName) {
-        // Uppdatera datan i vyerna när vi byter till dem
-        if ("Home".equals(viewName)) homeView.refreshData();
-        if ("MyDecks".equals(viewName)) myDecksView.refreshData();
+    public void navigateTo(String view) {
+        if ("Home".equals(view)) homeView.refreshData(null, null);
+        if ("MyDecks".equals(view)) myDecksView.refreshData(null, null);
 
-        cardLayout.show(mainContentPanel, viewName);
+        cardLayout.show(mainContentPanel, view);
     }
+
+    // När search eller tag ändras
+    public void applyFilters() {
+        String search = navbar.getSearchText();
+        Integer tagId = navbar.getSelectedTagId();
+
+        homeView.applyFilter(search, tagId);
+        myDecksView.applyFilter(search, tagId);
+    }
+
     public CreateDeckView getCreateDeckView() {
-        return createDeckView; // din instans av CreateDeckViewTest
+        return createDeckView;
     }
 
-    public EditDeckView getEditDeckView() { return editDeckView; }
+    public EditDeckView getEditDeckView() {
+        return editDeckView;
+    }
 
-    // Uppdaterad metod: Tar emot 'strategy' ("today" eller "all")
     public void startStudySession(int deckId, String strategy) {
         try {
             Integer userId = userController.getCurrentUserId();
             if (userId == null) {
-                JOptionPane.showMessageDialog(this, "No User loggedIn!");
+                JOptionPane.showMessageDialog(this, "No user logged in.");
                 return;
             }
 
-            // Starta sessionen i controllern
             studyController.startSession(strategy, deckId, userId);
-
-            // Konfigurera vyn (Skicka med strategin så vyn vet om den ska visa knappar eller ej)
             studyView.initSession(strategy);
-
             cardLayout.show(mainContentPanel, "Study");
 
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Couldn't start the session : " + e.getMessage());
-            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Cannot start study session: " + e.getMessage());
         }
     }
 }

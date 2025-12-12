@@ -16,20 +16,15 @@ public class CreateDeckView extends JPanel {
     private final UserController userController;
     private final AppFrame appFrame;
 
-    // State
     private DeckDTO createdDeck = null;
-    private Color selectedTagColor = new Color(0x808080); // default gray
+    private Color selectedTagColor = new Color(0x808080);
 
-    // UI Components
     private JPanel formPanel;
     private JTextField titleField;
-
-    // Tag UI
     private JComboBox<Object> existingTagsCombo;
     private JTextField newTagField;
     private JButton colorChooserButton;
 
-    // Card fields
     private JTextField frontField;
     private JTextField backField;
 
@@ -73,6 +68,7 @@ public class CreateDeckView extends JPanel {
         JLabel tagLabel = new JLabel("Tag:");
         tagLabel.setFont(new Font("SansSerif", Font.PLAIN, 14));
         tagLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
         tagPanel.add(tagLabel);
         tagPanel.add(Box.createVerticalStrut(6));
 
@@ -82,6 +78,7 @@ public class CreateDeckView extends JPanel {
         existingTagsCombo.addItem("-- New Tag --");
         existingTagsCombo.addActionListener(e -> onTagSelectionChanged());
         tagPanel.add(existingTagsCombo);
+
         tagPanel.add(Box.createVerticalStrut(8));
 
         newTagField = new JTextField();
@@ -89,6 +86,7 @@ public class CreateDeckView extends JPanel {
         newTagField.setFont(new Font("SansSerif", Font.PLAIN, 14));
         newTagField.setAlignmentX(Component.CENTER_ALIGNMENT);
         tagPanel.add(newTagField);
+
         tagPanel.add(Box.createVerticalStrut(8));
 
         JPanel colorRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
@@ -100,10 +98,6 @@ public class CreateDeckView extends JPanel {
         colorChooserButton.setForeground(contrastColorFor(selectedTagColor));
         colorChooserButton.addActionListener(e -> openColorChooser());
         colorRow.add(colorChooserButton);
-
-        JLabel colorHint = new JLabel();
-        colorHint.setFont(new Font("SansSerif", Font.PLAIN, 12));
-        colorRow.add(colorHint);
 
         tagPanel.add(colorRow);
         formPanel.add(tagPanel);
@@ -127,12 +121,10 @@ public class CreateDeckView extends JPanel {
         finishButton.addActionListener(e -> resetAndGoBack());
         finishButton.setVisible(false);
 
-        // Cancel (Avbryt) button
         cancelButton = new JButton("Close");
         cancelButton.setPreferredSize(new Dimension(150, 40));
         cancelButton.setBackground(new Color(200, 60, 60));
         cancelButton.setForeground(Color.WHITE);
-        cancelButton.setFocusPainted(false);
         cancelButton.addActionListener(e -> resetAndGoBack());
 
         buttonPanel.add(mainActionButton);
@@ -174,9 +166,12 @@ public class CreateDeckView extends JPanel {
 
     private void onTagSelectionChanged() {
         Object sel = existingTagsCombo.getSelectedItem();
-        boolean creatingNew = (sel == null || sel instanceof String && ((String) sel).equals("-- New Tag --"));
+
+        boolean creatingNew = (sel == null || sel instanceof String);
+
         newTagField.setVisible(creatingNew);
         colorChooserButton.setVisible(creatingNew);
+
         revalidate();
         repaint();
     }
@@ -185,8 +180,8 @@ public class CreateDeckView extends JPanel {
         Color c = JColorChooser.showDialog(this, "Choose Tag Color", selectedTagColor);
         if (c != null) {
             selectedTagColor = c;
-            colorChooserButton.setBackground(selectedTagColor);
-            colorChooserButton.setForeground(contrastColorFor(selectedTagColor));
+            colorChooserButton.setBackground(c);
+            colorChooserButton.setForeground(contrastColorFor(c));
         }
     }
 
@@ -201,14 +196,14 @@ public class CreateDeckView extends JPanel {
         existingTagsCombo.addItem("-- New Tag --");
 
         if (userId == null) return;
+
         try {
             List<TagDTO> tags = userController.getTagsForUser(userId);
-            for (TagDTO t : tags) {
-                existingTagsCombo.addItem(t);
-            }
+            for (TagDTO t : tags) existingTagsCombo.addItem(t);
         } catch (Exception e) {
-            System.err.println("Can't read the Tag: " + e.getMessage());
+            System.err.println("Can't read tags: " + e.getMessage());
         }
+
         onTagSelectionChanged();
     }
 
@@ -219,18 +214,12 @@ public class CreateDeckView extends JPanel {
         titleField.getParent().setVisible(!show);
         existingTagsCombo.getParent().setVisible(!show);
         newTagField.getParent().setVisible(!show);
-        newTagField.setVisible(!(!show));
-        colorChooserButton.setVisible(!(!show));
-
-        titleField.setEditable(!show);
+        colorChooserButton.setVisible(!show);
     }
 
     private void handleMainAction() {
-        if (createdDeck == null) {
-            createDeck();
-        } else {
-            addCard();
-        }
+        if (createdDeck == null) createDeck();
+        else addCard();
     }
 
     private void createDeck() {
@@ -242,14 +231,8 @@ public class CreateDeckView extends JPanel {
             return;
         }
 
-        if (userId == null) {
-            showStyledMessage("Wrong", "No User loggedIn", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
         if (deckController.deckExists(userId, title)) {
-            // Nice styled message instead of raw SQL/text
-            showStyledMessage("You have already a Deck with this name!", "You have already a Deck with this name!", JOptionPane.INFORMATION_MESSAGE);
+            showStyledMessage("Deck exists", "You already have a deck with this title.", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
@@ -257,38 +240,27 @@ public class CreateDeckView extends JPanel {
             createdDeck = deckController.createDeck(userId, title);
 
             Object sel = existingTagsCombo.getSelectedItem();
-            if (sel == null || (sel instanceof String && ((String) sel).equals("-- New Tag --"))) {
+
+            if (sel instanceof TagDTO t) {
+                deckController.assignTagToDeck(createdDeck.getId(), t.getId());
+            } else {
                 String newTagName = newTagField.getText().trim();
                 if (!newTagName.isBlank()) {
                     String hex = String.format(Locale.ROOT, "%02x%02x%02x",
                             selectedTagColor.getRed(), selectedTagColor.getGreen(), selectedTagColor.getBlue()).toUpperCase();
-                    try {
-                        var tagDto = deckController.createTag(userId, newTagName, hex);
-                        deckController.assignTagToDeck(createdDeck.getId(), tagDto.getId());
-                        createdDeck = deckController.getDeckById(createdDeck.getId());
-                        loadTagsForCurrentUser();
-                    } catch (Exception ex) {
-                        showStyledMessage("Warning", "Created Deck but couldn't assign a tag " + ex.getMessage(), JOptionPane.WARNING_MESSAGE);
-                    }
-                }
-            } else if (sel instanceof TagDTO) {
-                TagDTO t = (TagDTO) sel;
-                try {
+                    TagDTO t = deckController.createTag(userId, newTagName, hex);
                     deckController.assignTagToDeck(createdDeck.getId(), t.getId());
-                    createdDeck = deckController.getDeckById(createdDeck.getId());
-                } catch (Exception ex) {
-                    showStyledMessage("Warning", "Created Deck but couldn't assign a tag " + ex.getMessage(), JOptionPane.WARNING_MESSAGE);
                 }
             }
 
-            headerLabel.setText("Add Card in: " + createdDeck.getTitle());
+            headerLabel.setText("Add Cards to: " + createdDeck.getTitle());
             mainActionButton.setText("Add Card");
             finishButton.setVisible(true);
             toggleCardFields(true);
-            statusLabel.setText("Deck created! You can now add cards.");
+            statusLabel.setText("Deck created!");
 
         } catch (Exception e) {
-            showStyledMessage("Wrong", "Wrong: " + e.getMessage(), JOptionPane.ERROR_MESSAGE);
+            showStyledMessage("Error", e.getMessage(), JOptionPane.ERROR_MESSAGE);
             createdDeck = null;
         }
     }
@@ -298,28 +270,17 @@ public class CreateDeckView extends JPanel {
         String back = backField.getText().trim();
 
         if (front.isBlank() || back.isBlank()) {
-            showStyledMessage("Wrong", "Both front and back side should be given", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        if (createdDeck == null) {
-            showStyledMessage("Wrong", "No deck has been selected to put the card in.", JOptionPane.WARNING_MESSAGE);
+            showStyledMessage("Wrong", "Both fields required.", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
         try {
             deckController.addFlashcard(createdDeck.getId(), front, back);
-            createdDeck = deckController.getDeckById(createdDeck.getId());
-            int count = createdDeck.getCardCount();
-
             frontField.setText("");
             backField.setText("");
-            frontField.requestFocus();
-            statusLabel.setText("Card has been added (" + count + " totalt)");
-
+            statusLabel.setText("Card added.");
         } catch (Exception e) {
-            // If addFlashcard throws e.g. IllegalArgumentException for duplicate name, show styled message
-            showStyledMessage("An error occurred while saving", e.getMessage(), JOptionPane.ERROR_MESSAGE);
+            showStyledMessage("Error", e.getMessage(), JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -336,10 +297,6 @@ public class CreateDeckView extends JPanel {
         finishButton.setVisible(false);
         toggleCardFields(false);
 
-        selectedTagColor = new Color(0x808080);
-        colorChooserButton.setBackground(selectedTagColor);
-        colorChooserButton.setForeground(contrastColorFor(selectedTagColor));
-
         loadTagsForCurrentUser();
     }
 
@@ -348,28 +305,9 @@ public class CreateDeckView extends JPanel {
         appFrame.navigateTo("MyDecks");
     }
 
-    /**
-     * Visar ett stylat meddelandecenterat i en JOptionPane.
-     * messageTitle kan vara rubrik; messageText är texten.
-     * messageType: JOptionPane.INFORMATION_MESSAGE / WARNING_MESSAGE / ERROR_MESSAGE
-     */
-    private void showStyledMessage(String messageTitle, String messageText, int messageType) {
-        // Använd HTML för att centrera och göra texten fet och större
-        String html = "<html><div style='text-align:center; font-weight:bold; font-size:13pt;'>" +
-                escapeHtml(messageText) +
-                "</div></html>";
-
-        JLabel label = new JLabel(html);
-        label.setHorizontalAlignment(SwingConstants.CENTER);
+    private void showStyledMessage(String title, String message, int type) {
+        JLabel label = new JLabel("<html><div style='text-align:center;'>" + message + "</div></html>");
         label.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
-
-        // Visa meddelandet med standard-ikon beroende på typ
-        JOptionPane.showMessageDialog(this, label, messageTitle, messageType);
-    }
-
-    /** Enkel HTML-escape för säker rendering i JLabel */
-    private String escapeHtml(String s) {
-        if (s == null) return "";
-        return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\n", "<br/>");
+        JOptionPane.showMessageDialog(this, label, title, type);
     }
 }

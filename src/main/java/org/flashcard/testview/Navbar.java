@@ -1,31 +1,83 @@
 package org.flashcard.testview;
 
+import org.flashcard.application.dto.TagDTO;
+import org.flashcard.controllers.UserController;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.List;
 import java.util.function.Consumer;
 
 public class Navbar extends JPanel {
 
-    private final Consumer<String> navigationCallback;
+    private final Consumer<String> navigate;
+    private final Runnable onFilterChanged; // trigger utan parameter (AppFrame läser från getters)
+    private final SearchBar searchBar;
+    private final TagDropdown tagDropdown;
+    private final UserController userController;
 
-    public Navbar(Consumer<String> navigationCallback) {
-        this.navigationCallback = navigationCallback;
+    public Navbar(Consumer<String> navigate,
+                  Runnable onFilterChanged,
+                  UserController userController) {
 
-        setLayout(new FlowLayout(FlowLayout.LEFT, 20, 10));
-        setBackground(new Color(50, 50, 50)); // Mörkgrå
+        this.navigate = navigate;
+        this.onFilterChanged = onFilterChanged;
+        this.userController = userController;
 
-        add(createNavButton("Home", "Home"));
-        add(createNavButton("My Decks", "MyDecks"));
+        setLayout(new BorderLayout(20, 10));
+        setBackground(new Color(50, 50, 50));
+
+        // LEFT MENU
+        JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT, 20, 10));
+        left.setOpaque(false);
+        left.add(createNavButton("Home", "Home"));
+        left.add(createNavButton("My Decks", "MyDecks"));
+
+        // CENTER search + tag
+        JPanel center = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+        center.setOpaque(false);
+
+        searchBar = new SearchBar("Search Decks...", 300);
+
+        // Viktigt: vi *lyssnar* på dokumentet men vi ignorerar placeholder via getEffectiveText()
+        searchBar.getField().getDocument().addDocumentListener(new SimpleDocumentListener(() -> {
+            // Triggera filter i AppFrame – AppFrame hämtar searchText via navbar.getSearchText()
+            onFilterChanged.run();
+        }));
+
+        tagDropdown = new TagDropdown();
+        Integer userId = userController.getCurrentUserId();
+        List<TagDTO> tags = (userId == null) ? List.of() : userController.getTagsForUser(userId);
+        tagDropdown.loadTags(tags);
+
+        tagDropdown.getComboBox().addActionListener(e -> {
+            onFilterChanged.run();
+        });
+
+        center.add(searchBar);
+        center.add(tagDropdown);
+
+        add(left, BorderLayout.WEST);
+        add(center, BorderLayout.CENTER);
     }
 
-    private JButton createNavButton(String label, String viewName) {
-        JButton btn = new JButton(label);
+    private JButton createNavButton(String text, String view) {
+        JButton btn = new JButton(text);
         btn.setFocusPainted(false);
         btn.setBackground(new Color(70, 70, 70));
         btn.setForeground(Color.WHITE);
         btn.setBorderPainted(false);
-        btn.addActionListener(e -> navigationCallback.accept(viewName));
+        btn.addActionListener(e -> navigate.accept(view));
         return btn;
+    }
+
+    /** Returnerar "effektiv" söktext (null om placeholder eller tom). */
+    public String getSearchText() {
+        return searchBar.getEffectiveText();
+    }
+
+    /** Returnerar tag id eller null */
+    public Integer getSelectedTagId() {
+        return tagDropdown.getSelectedTagId();
     }
 }
