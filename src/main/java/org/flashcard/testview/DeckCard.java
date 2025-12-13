@@ -16,7 +16,7 @@ public class DeckCard extends JPanel {
         setLayout(new BorderLayout());
         setBackground(Color.WHITE);
         setBorder(BorderFactory.createLineBorder(new Color(220, 220, 220), 1));
-        setPreferredSize(new Dimension(220, 150));
+        setPreferredSize(new Dimension(220, 192));
 
         // --- Top Panel (Tag + Titel + Progress) ---
         JPanel topPanel = new JPanel(new BorderLayout());
