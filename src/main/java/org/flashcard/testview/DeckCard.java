@@ -7,7 +7,10 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionListener;
 
+
 public class DeckCard extends JPanel {
+
+    private JButton studyButton;
 
     public DeckCard(DeckDTO deck, ActionListener onStudyClick) {
         setLayout(new BorderLayout());
@@ -73,12 +76,17 @@ public class DeckCard extends JPanel {
         infoLabel.setHorizontalAlignment(SwingConstants.CENTER);
 
         // --- Action Button ---
-        JButton studyButton = new JButton("Start");
+        studyButton = new JButton("Start");
         studyButton.setBackground(new Color(60, 120, 240));
         studyButton.setForeground(Color.WHITE);
         studyButton.setFocusPainted(false);
         studyButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        studyButton.addActionListener(onStudyClick);
+
+        // Lägg till ActionListener om den inte är null
+        if (onStudyClick != null) {
+            studyButton.addActionListener(onStudyClick);
+        }
+
 
         // --- Center panel ---
         JPanel centerPanel = new JPanel(new GridLayout(2, 1));
@@ -90,4 +98,33 @@ public class DeckCard extends JPanel {
         add(centerPanel, BorderLayout.CENTER);
         add(studyButton, BorderLayout.SOUTH);
     }
+
+    // Ny konstruktor för inaktiverat kort med nedräkningstext
+    public DeckCard(
+            DeckDTO deck,
+            ActionListener onStudyClick,
+            boolean disabled,
+            String countdownText
+    ) {
+        this(deck, onStudyClick); // återanvänd befintlig konstruktor
+
+        if (disabled) {
+            setBackground(new Color(103, 97, 97));
+
+            studyButton.setEnabled(false);
+            studyButton.setBackground(new Color(103, 97, 97));
+            studyButton.setForeground(Color.DARK_GRAY);
+            studyButton.setCursor(Cursor.getDefaultCursor());
+            studyButton.setText(" ");
+
+            JLabel countdownLabel = new JLabel(countdownText, SwingConstants.CENTER);
+            countdownLabel.setFont(new Font("SansSerif", Font.ITALIC, 14)); // ⬅ större font
+            countdownLabel.setForeground(new Color(255, 255, 255));          // ⬅ tydligare färg
+
+
+            add(countdownLabel, BorderLayout.CENTER);
+        }
+
+    }
+
 }

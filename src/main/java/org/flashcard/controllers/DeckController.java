@@ -280,4 +280,27 @@ public class DeckController {
         CardLearningState state = flashcard.getCardLearningState();
         return FlashcardProgression.estimateDate(strategy, state);
     }
+
+    // Get all decks with due cards at Home view
+    public List<DeckDTO> getAllDecksWithDueInfo(Integer userId) {
+        List<Deck> userDecks = deckRepo.findByUserIdWithTag(userId);
+
+        return userDecks.stream()
+                .map(deck -> {
+                    List<Flashcard> cards = flashcardRepo.findByDeck(deck);
+                    deck.setCards(cards);
+
+                    double progress = DeckProgression.calculateDeckProgression(deck);
+                    deck.setDeckProgress(new DeckProgress(progress));
+
+                    long dueCount = cards.stream()
+                            .filter(this::isCardDue)
+                            .count();
+
+                    DeckDTO dto = DeckMapper.toDTO(deck, (int) dueCount);
+                    return dto;
+                })
+                .collect(Collectors.toList());
+    }
+
 }

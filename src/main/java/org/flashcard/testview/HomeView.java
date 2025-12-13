@@ -54,30 +54,60 @@ public class HomeView extends JPanel implements Observer<List<DeckDTO>> {
         if (userId == null) return;
 
         // Hämta dynamiskt beräknade decks med kort som är due today
-        List<DeckDTO> dueDecks = deckController.getDueDecksForUser(userId);
+        //List<DeckDTO> decks = deckController.getDueDecksForUser(userId);
+
+        // Hämta ALLA decks med due-info
+        List<DeckDTO> decks = deckController.getAllDecksWithDueInfo(userId);
 
         // Applicera sökfilter om text finns
         if (text != null && !text.isBlank()) {
-            dueDecks = dueDecks.stream()
+            decks = decks.stream()
                     .filter(d -> d.getTitle().toLowerCase().contains(text.toLowerCase()))
                     .toList();
         }
 
         // Applicera tag-filter om tagId finns
         if (tagId != null) {
-            dueDecks = dueDecks.stream()
+            decks = decks.stream()
                     .filter(d -> d.getTagDTO() != null && tagId.equals(d.getTagDTO().getId()))
                     .toList();
         }
 
-        if (dueDecks.isEmpty()) {
+        // Sortera så att aktiva decks (med due cards) kommer först
+        decks = decks.stream()
+                .sorted((d1, d2) -> Boolean.compare(
+                        d2.getDueCount() > 0,
+                        d1.getDueCount() > 0
+                ))
+                .toList();
+
+
+        if (decks.isEmpty()) {
             JLabel lbl = new JLabel("No cards to study today!");
             lbl.setHorizontalAlignment(SwingConstants.CENTER);
             gridPanel.add(lbl);
         } else {
-            for (DeckDTO deck : dueDecks) {
-                gridPanel.add(new DeckCard(deck,
-                        e -> appFrame.startStudySession(deck.getId(), "today")));
+            for (DeckDTO deck : decks) {
+
+                boolean isActive = deck.getDueCount() > 0; // ✅ HÄR
+
+                if (isActive) {
+                    gridPanel.add(
+                            new DeckCard(
+                                    deck,
+                                    e -> appFrame.startStudySession(deck.getId(), "today")
+                            )
+                    );
+                } else {
+                    gridPanel.add(
+                            new DeckCard(
+                                    deck,
+                                    null,
+                                    true,
+                                    "Next Card available in X days"
+                            )
+                    );
+                }
             }
         }
 
