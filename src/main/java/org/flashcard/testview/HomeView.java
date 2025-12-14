@@ -66,7 +66,7 @@ public class HomeView extends JPanel implements Observer<List<DeckDTO>> {
 
         // Hämta ALLA decks med due-info
         List<DeckDTO> allDecks = deckController.getAllDecksForUser(userId);
-        List<DeckDTO> dueDecks = deckController.getDueDecksForUser(userId);
+        List<DeckDTO> dueDecks = filterController.getDueDecksForUser(userId);
         List<DeckDTO> notDueDecks = deckController.getNotDueDecksForUser(userId);
 
         for (DeckDTO deck : dueDecks) {
