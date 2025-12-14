@@ -61,39 +61,11 @@ public class HomeView extends JPanel implements Observer<List<DeckDTO>> {
         //List<DeckDTO> decks = deckController.getDueDecksForUser(userId);
 
         // Hämta ALLA decks med due-info
-        List<DeckDTO> decks = deckController.getDueDecksForUser(userId);
+        List<DeckDTO> allDecks = deckController.getAllDecksForUser(userId);
+        List<DeckDTO> dueDecks = deckController.getDueDecksForUser(userId);
         List<DeckDTO> notDueDecks = deckController.getNotDueDecksForUser(userId);
 
-        // Applicera sökfilter om text finns
-        if (text != null && !text.isBlank()) {
-            decks = decks.stream()
-                    .filter(d -> d.getTitle().toLowerCase().contains(text.toLowerCase()))
-                    .toList();
-        }
-
-        // Applicera tag-filter om tagId finns
-        if (tagId != null) {
-            decks = decks.stream()
-                    .filter(d -> d.getTagDTO() != null && tagId.equals(d.getTagDTO().getId()))
-                    .toList();
-        }
-
-        // Sortera så att aktiva decks (med due cards) kommer först
-        decks = decks.stream()
-                .sorted((d1, d2) -> Boolean.compare(
-                        d2.getDueCount() > 0,
-                        d1.getDueCount() > 0
-                ))
-                .toList();
-
-
-//        if (decks.isEmpty()) {
-//            JLabel lbl = new JLabel("No cards to study today!");
-//            lbl.setHorizontalAlignment(SwingConstants.CENTER);
-//            gridPanel.add(lbl);
-//        }
-
-        for (DeckDTO deck : decks) {
+        for (DeckDTO deck : dueDecks) {
             gridPanel.add(new DeckCard(deck, e -> appFrame.startStudySession(deck.getId(), "today")));
         }
 
@@ -108,6 +80,36 @@ public class HomeView extends JPanel implements Observer<List<DeckDTO>> {
                             timeLeft));
 
         }
+        // Applicera sökfilter om text finns
+        if (text != null && !text.isBlank()) {
+            allDecks = allDecks.stream()
+                    .filter(d -> d.getTitle().toLowerCase().contains(text.toLowerCase()))
+                    .toList();
+        }
+
+        // Applicera tag-filter om tagId finns
+        if (tagId != null) {
+            allDecks = allDecks.stream()
+                    .filter(d -> d.getTagDTO() != null && tagId.equals(d.getTagDTO().getId()))
+                    .toList();
+        }
+
+        // Sortera så att aktiva decks (med due cards) kommer först
+        allDecks.stream()
+                .sorted((d1, d2) -> Boolean.compare(
+                        d2.getDueCount() > 0,
+                        d1.getDueCount() > 0
+                ))
+                .toList();
+
+
+//        if (decks.isEmpty()) {
+//            JLabel lbl = new JLabel("No cards to study today!");
+//            lbl.setHorizontalAlignment(SwingConstants.CENTER);
+//            gridPanel.add(lbl);
+//        }
+
+
 
 
 //            else {
