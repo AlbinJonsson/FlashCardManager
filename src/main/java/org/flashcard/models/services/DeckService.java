@@ -53,9 +53,7 @@ public class DeckService {
         return decksObservable;
     }
 
-    public Observable<List<FlashcardDTO>> getFlashcardsObservable() {
-        return flashcardsObservable;
-    }
+
 
     public DeckDTO createDeck(Integer userId, String title) {
         User user = userRepo.findById(userId)
@@ -141,26 +139,6 @@ public class DeckService {
                 .filter(dto -> dto.getDueCount() > 0)
                 .collect(Collectors.toList());
     }
-//    public List<DeckDTO> getAllDecksWithDueInfo(Integer userId) {
-//        List<Deck> userDecks = deckRepo.findByUserIdWithTag(userId);
-//
-//        return userDecks.stream()
-//                .map(deck -> {
-//                    List<Flashcard> cards = flashcardRepo.findByDeck(deck);
-//                    deck.setCards(cards);
-//
-//                    double progress = DeckProgression.calculateDeckProgression(deck);
-//                    deck.setDeckProgress(new DeckProgress(progress));
-//
-//                    long dueCount = cards.stream()
-//                            .filter(this::isCardDue)
-//                            .count();
-//
-//                    DeckDTO dto = DeckMapper.toDTO(deck, (int) dueCount);
-//                    return dto;
-//                })
-//                .collect(Collectors.toList());
-//    }
     public List<DeckDTO> getNotDueDecksForUser(Integer userId) {
         List<Deck> userDecks = deckRepo.findByUserId(userId);
 
@@ -229,66 +207,11 @@ public class DeckService {
 
     }
 
-    // --- Flashcard CRUD ---
-
-    public FlashcardDTO addFlashcard(Integer deckId, String front, String back) {
-
-        Deck deck = deckRepo.findById(deckId)
-                .orElseThrow(() -> new IllegalArgumentException("Deck not found"));
-
-        Flashcard card = new Flashcard(front, back, deck);
-        Flashcard savedCard = flashcardRepo.save(card);
-
-        FlashcardDTO dto = FlashcardMapper.toDTO(savedCard);
-
-
-        flashcardsObservable.notifyListeners(getFlashcardsForDeck(deckId));
-
-
-        return dto;
-    }
 
     public boolean deckExists(Integer userId, String title) {
         return deckRepo.existsByUserIdAndTitle(userId, title);
     }
 
-    public List<FlashcardDTO> getFlashcardsForDeck(Integer deckId) {
-        List<Flashcard> cards = flashcardRepo.findByDeckId(deckId);
-        return cards.stream().map(FlashcardMapper::toDTO).collect(Collectors.toList());
-    }
-
-    public FlashcardDTO updateFlashcard(Integer cardId, String newFront, String newBack) {
-
-        Flashcard card = flashcardRepo.findById(cardId)
-                .orElseThrow(() -> new IllegalArgumentException("Flashcard not found"));
-
-        if (newFront != null && !newFront.isBlank()) card.setFront(newFront);
-        if (newBack != null && !newBack.isBlank()) card.setBack(newBack);
-
-        Flashcard savedCard = flashcardRepo.save(card);
-
-
-        flashcardsObservable.notifyListeners(
-                getFlashcardsForDeck(savedCard.getDeck().getId())
-        );
-        // --------------------------------------------------------------------
-
-        return FlashcardMapper.toDTO(savedCard);
-    }
-
-    public void deleteFlashcard(Integer cardId) {
-
-        Flashcard card = flashcardRepo.findById(cardId)
-                .orElseThrow(() -> new IllegalArgumentException("Flashcard not found"));
-
-        Integer deckId = card.getDeck().getId();
-
-        flashcardRepo.deleteById(cardId);
-
-
-        flashcardsObservable.notifyListeners(getFlashcardsForDeck(deckId));
-
-    }
 
     // Search / Filter
     public List<DeckDTO> searchDecks(Integer userId, String searchText, Integer tagId) {
@@ -311,14 +234,7 @@ public class DeckService {
 
                 .toList();
     }
-    public long showEstimatedDate(String rating, int cardID){
-        Flashcard flashcard = flashcardRepo.findById(cardID)
-                .orElseThrow(() -> new IllegalArgumentException("Flashcard not found"));
-        RatingStrategy strategy = StrategyFactory.createStrategy(rating);
 
-        CardLearningState state = flashcard.getCardLearningState();
-        return FlashcardProgression.estimateDate(strategy, state);
-    }
     private Flashcard getNextReviewableCard(int deckID){
         Deck deck = deckRepo.findById(deckID)
                 .orElseThrow(() -> new IllegalArgumentException("Deck not found"));
