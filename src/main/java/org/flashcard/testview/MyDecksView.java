@@ -2,6 +2,7 @@ package org.flashcard.testview;
 
 import org.flashcard.application.dto.DeckDTO;
 import org.flashcard.controllers.DeckController;
+import org.flashcard.controllers.FilterController;
 import org.flashcard.controllers.UserController;
 import org.flashcard.controllers.observer.Observer;
 
@@ -13,13 +14,16 @@ public class MyDecksView extends JPanel implements Observer<List<DeckDTO>> {
 
     private final DeckController deckController;
     private final UserController userController;
+    private final FilterController filterController;
     private final AppFrame appFrame;
 
     private JPanel gridPanel;
 
-    public MyDecksView(DeckController deckController, UserController userController, AppFrame appFrame) {
+    public MyDecksView(DeckController deckController, UserController userController, FilterController filtercontroller,
+                       AppFrame appFrame) {
         this.deckController = deckController;
         this.userController = userController;
+        this.filterController = filtercontroller;
         this.appFrame = appFrame;
 
         deckController.getDecksObservable().addListener(this);
@@ -69,7 +73,7 @@ public class MyDecksView extends JPanel implements Observer<List<DeckDTO>> {
         gridPanel.removeAll();
 
         Integer userId = userController.getCurrentUserId();
-        List<DeckDTO> decks = deckController.searchDecks(userId, text, tagId);
+        List<DeckDTO> decks = filterController.searchDecks(userId, text, tagId);
 
         if (decks.isEmpty()) {
             JLabel lbl = new JLabel("No decks found.");
@@ -80,7 +84,7 @@ public class MyDecksView extends JPanel implements Observer<List<DeckDTO>> {
                 JPanel wrapper = new JPanel(new BorderLayout());
                 wrapper.setOpaque(false);
 
-                DeckCard card = new DeckCard(d,
+                DeckCard card = new DeckCard(d, DeckCard.DeckCardContext.MY_DECKS_VIEW,
                         e -> appFrame.startStudySession(d.getId(), "all"));
                 wrapper.add(card, BorderLayout.CENTER);
 

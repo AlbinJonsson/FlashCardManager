@@ -1,8 +1,6 @@
 package org.flashcard.testview;
 
-import org.flashcard.controllers.DeckController;
-import org.flashcard.controllers.StudyController;
-import org.flashcard.controllers.UserController;
+import org.flashcard.controllers.*;
 
 import javax.swing.*;
 import java.awt.*;
@@ -12,6 +10,8 @@ public class AppFrame extends JFrame {
     private final UserController userController;
     private final StudyController studyController;
     private final DeckController deckController;
+    private final TagController tagController;
+    private final FilterController filterController;
 
     private CardLayout cardLayout;
     private JPanel mainContentPanel;
@@ -24,10 +24,13 @@ public class AppFrame extends JFrame {
     private StudyView studyView;
     private EditDeckView editDeckView;
 
-    public AppFrame(UserController userController, StudyController studyController, DeckController deckController) {
+    public AppFrame(UserController userController, StudyController studyController,
+                    DeckController deckController, TagController tagController, FilterController filterController) {
         this.userController = userController;
         this.studyController = studyController;
         this.deckController = deckController;
+        this.tagController = tagController;
+        this.filterController = filterController;
 
         initFrame();
         autoLoginForTesting();
@@ -56,8 +59,9 @@ public class AppFrame extends JFrame {
 
         navbar = new Navbar(
                 this::navigateTo,
-                this::applyFilters,    // Runnable, AppFrame läser navbar.getSearchText()
-                userController
+                this::applyFilters,
+                userController,
+                tagController
         );
         add(navbar, BorderLayout.NORTH);
 
@@ -65,9 +69,9 @@ public class AppFrame extends JFrame {
         cardLayout = new CardLayout();
         mainContentPanel = new JPanel(cardLayout);
 
-        homeView = new HomeView(deckController, userController, this);
-        myDecksView = new MyDecksView(deckController, userController, this); // Nu riktig klass
-        createDeckView = new CreateDeckView(deckController, userController, this); // NY
+        homeView = new HomeView(deckController, userController,filterController, this);
+        myDecksView = new MyDecksView(deckController, userController,filterController, this); // Nu riktig klass
+        createDeckView = new CreateDeckView(deckController, userController,tagController, this); // NY
         studyView = new StudyView(studyController,deckController, this);
         editDeckView = new EditDeckView(deckController, userController, this);
 

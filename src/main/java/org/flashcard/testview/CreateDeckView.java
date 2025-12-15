@@ -3,6 +3,7 @@ package org.flashcard.testview;
 import org.flashcard.application.dto.DeckDTO;
 import org.flashcard.application.dto.TagDTO;
 import org.flashcard.controllers.DeckController;
+import org.flashcard.controllers.TagController;
 import org.flashcard.controllers.UserController;
 
 import javax.swing.*;
@@ -14,6 +15,7 @@ public class CreateDeckView extends JPanel {
 
     private final DeckController deckController;
     private final UserController userController;
+    private final TagController tagController;
     private final AppFrame appFrame;
 
     private DeckDTO createdDeck = null;
@@ -34,9 +36,11 @@ public class CreateDeckView extends JPanel {
     private JLabel statusLabel;
     private JLabel headerLabel;
 
-    public CreateDeckView(DeckController deckController, UserController userController, AppFrame appFrame) {
+    public CreateDeckView(DeckController deckController, UserController userController,
+                          TagController tagController, AppFrame appFrame) {
         this.deckController = deckController;
         this.userController = userController;
+        this.tagController = tagController;
         this.appFrame = appFrame;
 
         setLayout(new BorderLayout());
@@ -127,9 +131,9 @@ public class CreateDeckView extends JPanel {
         cancelButton.setForeground(Color.WHITE);
         cancelButton.addActionListener(e -> resetAndGoBack());
 
+        buttonPanel.add(cancelButton);
         buttonPanel.add(mainActionButton);
         buttonPanel.add(finishButton);
-        buttonPanel.add(cancelButton);
 
         formPanel.add(Box.createVerticalStrut(20));
         formPanel.add(buttonPanel);
@@ -198,7 +202,7 @@ public class CreateDeckView extends JPanel {
         if (userId == null) return;
 
         try {
-            List<TagDTO> tags = userController.getTagsForUser(userId);
+            List<TagDTO> tags = tagController.getTagsForUser(userId);
             for (TagDTO t : tags) existingTagsCombo.addItem(t);
         } catch (Exception e) {
             System.err.println("Can't read tags: " + e.getMessage());
@@ -218,11 +222,9 @@ public class CreateDeckView extends JPanel {
     }
 
     private void handleMainAction() {
-        if (createdDeck == null) createDeck();
-        else addCard();
+        createDeckAndOpenEditor();
     }
-
-    private void createDeck() {
+    private void createDeckAndOpenEditor() {
         String title = titleField.getText().trim();
         Integer userId = userController.getCurrentUserId();
 
@@ -237,48 +239,28 @@ public class CreateDeckView extends JPanel {
         }
 
         try {
-            createdDeck = deckController.createDeck(userId, title);
+            DeckDTO deck = deckController.createDeck(userId, title);
 
             Object sel = existingTagsCombo.getSelectedItem();
-
             if (sel instanceof TagDTO t) {
-                deckController.assignTagToDeck(createdDeck.getId(), t.getId());
+                deckController.assignTagToDeck(deck.getId(), t.getId());
             } else {
                 String newTagName = newTagField.getText().trim();
                 if (!newTagName.isBlank()) {
-                    String hex = String.format(Locale.ROOT, "%02x%02x%02x",
-                            selectedTagColor.getRed(), selectedTagColor.getGreen(), selectedTagColor.getBlue()).toUpperCase();
-                    TagDTO t = deckController.createTag(userId, newTagName, hex);
-                    deckController.assignTagToDeck(createdDeck.getId(), t.getId());
+                    String hex = String.format(
+                            Locale.ROOT,
+                            "%02X%02X%02X",
+                            selectedTagColor.getRed(),
+                            selectedTagColor.getGreen(),
+                            selectedTagColor.getBlue()
+                    );
+                    TagDTO t = tagController.createTag(userId, newTagName, hex);
+                    deckController.assignTagToDeck(deck.getId(), t.getId());
                 }
             }
+            appFrame.navigateTo("EditDeck");
+            appFrame.getEditDeckView().loadDeck(deck.getId());
 
-            headerLabel.setText("Add Cards to: " + createdDeck.getTitle());
-            mainActionButton.setText("Add Card");
-            finishButton.setVisible(true);
-            toggleCardFields(true);
-            statusLabel.setText("Deck created!");
-
-        } catch (Exception e) {
-            showStyledMessage("Error", e.getMessage(), JOptionPane.ERROR_MESSAGE);
-            createdDeck = null;
-        }
-    }
-
-    private void addCard() {
-        String front = frontField.getText().trim();
-        String back = backField.getText().trim();
-
-        if (front.isBlank() || back.isBlank()) {
-            showStyledMessage("Wrong", "Both fields required.", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        try {
-            deckController.addFlashcard(createdDeck.getId(), front, back);
-            frontField.setText("");
-            backField.setText("");
-            statusLabel.setText("Card added.");
         } catch (Exception e) {
             showStyledMessage("Error", e.getMessage(), JOptionPane.ERROR_MESSAGE);
         }

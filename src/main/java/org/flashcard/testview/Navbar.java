@@ -1,6 +1,7 @@
 package org.flashcard.testview;
 
 import org.flashcard.application.dto.TagDTO;
+import org.flashcard.controllers.TagController;
 import org.flashcard.controllers.UserController;
 
 import javax.swing.*;
@@ -15,14 +16,20 @@ public class Navbar extends JPanel {
     private final SearchBar searchBar;
     private final TagDropdown tagDropdown;
     private final UserController userController;
+    private final TagController tagController;
+    private ProfileMenuButton profileMenuButton;
+
+
 
     public Navbar(Consumer<String> navigate,
                   Runnable onFilterChanged,
-                  UserController userController) {
+                  UserController userController,
+                  TagController tagController) {
 
         this.navigate = navigate;
         this.onFilterChanged = onFilterChanged;
         this.userController = userController;
+        this.tagController = tagController;
 
         setLayout(new BorderLayout(20, 10));
         setBackground(new Color(50, 50, 50));
@@ -30,6 +37,11 @@ public class Navbar extends JPanel {
         // LEFT MENU
         JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT, 20, 10));
         left.setOpaque(false);
+
+        profileMenuButton = new ProfileMenuButton(userController, this);
+        left.add(profileMenuButton);
+
+
         left.add(createNavButton("Home", "Home"));
         left.add(createNavButton("My Decks", "MyDecks"));
 
@@ -39,19 +51,14 @@ public class Navbar extends JPanel {
 
         searchBar = new SearchBar("Search Decks...", 300);
 
-
         searchBar.getField().getDocument().addDocumentListener(new SearchListener(() -> {
             onFilterChanged.run();
         }));
 
-        tagDropdown = new TagDropdown();
-        Integer userId = userController.getCurrentUserId();
-        List<TagDTO> tags = (userId == null) ? List.of() : userController.getTagsForUser(userId);
-        tagDropdown.loadTags(tags);
 
-        tagDropdown.getComboBox().addActionListener(e -> {
-            onFilterChanged.run();
-        });
+        tagDropdown = new TagDropdown();
+        reloadTags();
+        tagDropdown.getComboBox().addActionListener(e -> onFilterChanged.run());
 
         center.add(searchBar);
         center.add(tagDropdown);
@@ -79,4 +86,23 @@ public class Navbar extends JPanel {
     public Integer getSelectedTagId() {
         return tagDropdown.getSelectedTagId();
     }
+
+
+
+    /** Called by ProfileDropdown when user changes */
+    public void onUserChanged() {
+        reloadTags();
+        onFilterChanged.run();
+
+        profileMenuButton.refreshUser();
+    }
+
+
+    private void reloadTags() {
+        Integer userId = userController.getCurrentUserId();
+        List<TagDTO> tags = userId == null ? List.of() : tagController.getTagsForUser(userId);
+        tagDropdown.loadTags(tags);
+    }
+
+
 }
