@@ -38,6 +38,7 @@ public class DeckService {
     private final FlashcardRepository flashcardRepo;
     private final UserRepository userRepo;
     private final TagRepository tagRepo;
+
     public DeckService(FlashcardRepository flashcardRepo,
                        DeckRepository deckRepo,
                        UserRepository userRepo,
@@ -95,18 +96,18 @@ public class DeckService {
 
         return userDecks.stream()
                 .map(deck -> {
-                    // Get cards for deck
                     List<Flashcard> cards = flashcardRepo.findByDeck(deck);
                     deck.setCards(cards);
 
-                    // Calculate progression
                     double progress = DeckProgression.calculateDeckProgression(deck);
                     deck.setDeckProgress(new DeckProgress(progress));
 
-                    // Count cards
-                    long cardCount = cards.size();
+                    long dueCount = cards.stream()
+                            .filter(this::isCardDue)
+                            .count();
 
-                    return DeckMapper.toDTO(deck, (int) cardCount);
+                    DeckDTO dto = DeckMapper.toDTO(deck, (int) dueCount);
+                    return dto;
                 })
                 .collect(Collectors.toList());
     }
@@ -140,6 +141,26 @@ public class DeckService {
                 .filter(dto -> dto.getDueCount() > 0)
                 .collect(Collectors.toList());
     }
+//    public List<DeckDTO> getAllDecksWithDueInfo(Integer userId) {
+//        List<Deck> userDecks = deckRepo.findByUserIdWithTag(userId);
+//
+//        return userDecks.stream()
+//                .map(deck -> {
+//                    List<Flashcard> cards = flashcardRepo.findByDeck(deck);
+//                    deck.setCards(cards);
+//
+//                    double progress = DeckProgression.calculateDeckProgression(deck);
+//                    deck.setDeckProgress(new DeckProgress(progress));
+//
+//                    long dueCount = cards.stream()
+//                            .filter(this::isCardDue)
+//                            .count();
+//
+//                    DeckDTO dto = DeckMapper.toDTO(deck, (int) dueCount);
+//                    return dto;
+//                })
+//                .collect(Collectors.toList());
+//    }
     public List<DeckDTO> getNotDueDecksForUser(Integer userId) {
         List<Deck> userDecks = deckRepo.findByUserId(userId);
 
@@ -299,21 +320,21 @@ public class DeckService {
         return FlashcardProgression.estimateDate(strategy, state);
     }
     private Flashcard getNextReviewableCard(int deckID){
-
         Deck deck = deckRepo.findById(deckID)
                 .orElseThrow(() -> new IllegalArgumentException("Deck not found"));
 
-        Flashcard nextCard = deck.getCards().stream()
-                .filter(card -> card.getCardLearningState().getNextReviewDate().isAfter(LocalDateTime.now()))
+        return deck.getCards().stream()
+                .filter(card -> card.getCardLearningState() != null &&
+                        card.getCardLearningState().getNextReviewDate().isAfter(LocalDateTime.now()))
                 .min(Comparator.comparing(card -> card.getCardLearningState().getNextReviewDate()))
-                .orElseThrow(() -> new IllegalStateException("No future review card found"));
-
-        return nextCard;
-
+                .orElse(null);
     }
 
     public Duration timeUntilDue(int deckID) {
         Flashcard flashcard = getNextReviewableCard(deckID);
+        if(flashcard == null){
+            return Duration.ZERO;
+        }
         return Duration.between(LocalDateTime.now(), flashcard.getCardLearningState().getNextReviewDate());
     }
 
