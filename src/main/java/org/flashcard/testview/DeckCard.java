@@ -101,6 +101,14 @@ public class DeckCard extends JPanel {
             studyButton.addActionListener(onStudyClick);
         }
 
+        // Disable button if no cards
+        if (deck.getCardCount() == 0) {
+            studyButton.setEnabled(false);
+            studyButton.setBackground(new Color(180, 180, 180));
+            studyButton.setForeground(Color.DARK_GRAY);
+            studyButton.setCursor(Cursor.getDefaultCursor());
+        }
+
         // --- Center panel ---
         JPanel centerPanel = new JPanel(new GridLayout(2, 1));
         centerPanel.setOpaque(false);
