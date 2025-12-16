@@ -43,11 +43,6 @@ public class TagService {
         List<Tag> tags = tagRepo.findByUserId(userId);
         return TagMapper.toDTOList(tags);
     }
-
-    public String getTagText(Integer tagId) {
-        return tagRepo.findById(tagId)
-                .map(tag -> "Tag: " + tag.getTitle() + ", Color: #" + tag.getColor())
-                .orElse("");
-    }
+    
 }
 
