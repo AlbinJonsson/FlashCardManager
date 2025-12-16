@@ -13,7 +13,6 @@ import org.flashcard.models.ratingstrategy.StrategyFactory;
 import org.flashcard.repositories.DeckRepository;
 import org.flashcard.repositories.FlashcardRepository;
 import org.springframework.stereotype.Service;
-
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -32,7 +31,7 @@ public class FlashCardService {
         this.deckRepository = deckRepository;
     }
 
-    // --- Flashcard CRUD ---
+
 
     public FlashcardDTO addFlashcard(Integer deckId, String front, String back) {
 
@@ -60,24 +59,7 @@ public class FlashCardService {
         List<Flashcard> cards = flashcardRepository.findByDeckId(deckId);
         return cards.stream().map(FlashcardMapper::toDTO).collect(Collectors.toList());
     }
-    public FlashcardDTO updateFlashcard(Integer cardId, String newFront, String newBack) {
 
-        Flashcard card = flashcardRepository.findById(cardId)
-                .orElseThrow(() -> new IllegalArgumentException("Flashcard not found"));
-
-        if (newFront != null && !newFront.isBlank()) card.setFront(newFront);
-        if (newBack != null && !newBack.isBlank()) card.setBack(newBack);
-
-        Flashcard savedCard = flashcardRepository.save(card);
-
-
-        flashcardsObservable.notifyListeners(
-                getFlashcardsForDeck(savedCard.getDeck().getId())
-        );
-        // --------------------------------------------------------------------
-
-        return FlashcardMapper.toDTO(savedCard);
-    }
     public void deleteFlashcard(Integer cardId) {
 
         Flashcard card = flashcardRepository.findById(cardId)

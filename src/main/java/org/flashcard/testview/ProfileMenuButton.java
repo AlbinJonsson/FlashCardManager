@@ -2,7 +2,6 @@ package org.flashcard.testview;
 
 import org.flashcard.application.dto.UserDTO;
 import org.flashcard.controllers.UserController;
-
 import javax.swing.*;
 import java.awt.*;
 

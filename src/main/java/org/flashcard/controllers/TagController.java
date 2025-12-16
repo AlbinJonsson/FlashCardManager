@@ -25,7 +25,5 @@ public class TagController {
         return tagService.getTagsForUser(userId);
     }
 
-    public String getTagText(Integer tagId) {
-        return tagService.getTagText(tagId);
-    }
+
 }

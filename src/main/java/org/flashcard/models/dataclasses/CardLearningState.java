@@ -46,8 +46,6 @@ public class CardLearningState {
     }
 
     // Getters and setters
-    public Integer getFlashcardId() { return flashcardId; }
-    public void setFlashcardId(Integer flashcardId) { this.flashcardId = flashcardId; }
 
     public Flashcard getFlashcard() { return flashcard; }
     public void setFlashcard(Flashcard flashcard) { this.flashcard = flashcard; }
@@ -62,7 +60,6 @@ public class CardLearningState {
         intervalBetweenReviews = BigDecimal.valueOf(ChronoUnit.SECONDS.between(lastReviewDate, nextReviewDate));
         return intervalBetweenReviews;
     }
-    public void setIntervalBetweenReviews(BigDecimal intervalBetweenReviews) { this.intervalBetweenReviews = intervalBetweenReviews; }
 
     public Integer getNumberOfTimesViewed() { return numberOfTimesViewed; }
     public void setNumberOfTimesViewed(Integer numberOfTimesViewed) { this.numberOfTimesViewed = numberOfTimesViewed; }

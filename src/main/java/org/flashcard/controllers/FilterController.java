@@ -25,11 +25,5 @@ public class FilterController {
                 .toList();
     }
 
-    public List<DeckDTO> getDueDecksForUser(Integer userId) {
-        return deckService.getDueDecksForUser(userId);
-    }
-
-    public List<DeckDTO> getNotDueDecksForUser(Integer userId) {
-        return deckService.getNotDueDecksForUser(userId);
-    }
+    
 }

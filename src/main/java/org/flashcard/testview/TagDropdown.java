@@ -1,7 +1,6 @@
 package org.flashcard.testview;
 
 import org.flashcard.application.dto.TagDTO;
-
 import javax.swing.*;
 import java.awt.*;
 import java.util.List;

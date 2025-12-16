@@ -5,8 +5,6 @@ import org.flashcard.application.dto.FlashcardDTO;
 import org.flashcard.controllers.DeckController;
 import org.flashcard.controllers.StudyController;
 import org.flashcard.controllers.observer.Observer;
-
-
 import javax.swing.*;
 import java.awt.*;
 
@@ -113,8 +111,6 @@ public class StudyView extends JPanel implements Observer<FlashcardDTO> {
 
     public void initSession(String currentMode) {
         this.currentMode = currentMode;
-
-        // Previously you called loadNextCard() here, now StudyController does it
     }
 
     @Override
@@ -179,8 +175,6 @@ public class StudyView extends JPanel implements Observer<FlashcardDTO> {
             intervalPanel.add(new JLabel(String.valueOf(deckController.showEstimatedDate("hard", currentCard.getId())) + "d"));
             intervalPanel.add(new JLabel(String.valueOf(deckController.showEstimatedDate("medium", currentCard.getId())) + "d"));
             intervalPanel.add(new JLabel(String.valueOf(deckController.showEstimatedDate("easy", currentCard.getId())) + "d"));
-
-
             intervalPanel.revalidate();
             intervalPanel.repaint();
         }

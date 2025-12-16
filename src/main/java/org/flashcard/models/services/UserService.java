@@ -22,7 +22,6 @@ public class UserService {
         this.userRepo = userRepo;
     }
 
-    // --- User CRUD & Session ---
 
     public UserDTO createUser(String username) {
         if (userRepo.existsByUsername(username)) {
@@ -39,11 +38,6 @@ public class UserService {
                 .collect(Collectors.toList());
     }
 
-    public UserDTO getUserById(Integer userId) {
-        User user = userRepo.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
-        return UserMapper.toDTO(user);
-    }
 
     public void deleteUser(Integer userId) {
         if (!userRepo.existsById(userId)) {

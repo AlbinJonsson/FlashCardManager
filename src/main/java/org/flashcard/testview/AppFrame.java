@@ -1,7 +1,6 @@
 package org.flashcard.testview;
 
 import org.flashcard.controllers.*;
-
 import javax.swing.*;
 import java.awt.*;
 
@@ -56,7 +55,6 @@ public class AppFrame extends JFrame {
     private void initComponents() {
 
         // Navbar med filter callbacks
-
         navbar = new Navbar(
                 this::navigateTo,
                 this::applyFilters,

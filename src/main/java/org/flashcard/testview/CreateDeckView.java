@@ -232,12 +232,10 @@ public class CreateDeckView extends JPanel {
             showStyledMessage("Wrong", "You must assign a title!", JOptionPane.WARNING_MESSAGE);
             return;
         }
-
         if (deckController.deckExists(userId, title)) {
             showStyledMessage("Deck exists", "You already have a deck with this title.", JOptionPane.WARNING_MESSAGE);
             return;
         }
-
         try {
             DeckDTO deck = deckController.createDeck(userId, title);
 

@@ -5,10 +5,10 @@ import org.flashcard.controllers.DeckController;
 import org.flashcard.controllers.FilterController;
 import org.flashcard.controllers.UserController;
 import org.flashcard.controllers.observer.Observer;
-
 import javax.swing.*;
 import java.awt.*;
 import java.util.List;
+
 
 public class MyDecksView extends JPanel implements Observer<List<DeckDTO>> {
 

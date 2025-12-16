@@ -5,7 +5,6 @@ import org.flashcard.application.dto.FlashcardDTO;
 import org.flashcard.controllers.DeckController;
 import org.flashcard.controllers.UserController;
 import org.flashcard.controllers.observer.Observer;
-
 import javax.swing.*;
 import java.awt.*;
 import java.util.List;
@@ -117,7 +116,7 @@ public class EditDeckView extends JPanel implements Observer<List<FlashcardDTO>>
             }
         });
 
-// Centrera knappen i panelen
+        // Centrera knappen i panelen
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         buttonPanel.setBackground(Color.WHITE);
         buttonPanel.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
