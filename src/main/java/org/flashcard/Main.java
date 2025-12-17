@@ -1,7 +1,7 @@
 package org.flashcard;
 
 import org.flashcard.controllers.*;
-import org.flashcard.testview.AppFrame;
+import org.flashcard.view.AppFrame;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationContext;

@@ -1,4 +1,4 @@
-package org.flashcard.testview;
+package org.flashcard.view;
 
 
 import org.flashcard.application.dto.FlashcardDTO;
