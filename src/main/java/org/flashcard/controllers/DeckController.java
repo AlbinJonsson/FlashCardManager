@@ -4,16 +4,18 @@ import org.flashcard.application.dto.DeckDTO;
 import org.flashcard.application.dto.FlashcardDTO;
 import org.flashcard.application.dto.TagDTO;
 import org.flashcard.controllers.observer.Observable;   // <-- OBSERVER
-import org.flashcard.controllers.observer.Observer;
-import org.flashcard.models.dataclasses.*;
 import org.flashcard.models.services.DeckService;
 import org.flashcard.models.services.FlashCardService;
 import org.flashcard.models.timers.CountdownListener;
-import org.flashcard.repositories.DeckRepository;
 import org.springframework.stereotype.Controller;
 import java.time.Duration;
 import java.util.List;
-
+/* We use Spring Data JPA to access the database.
+ * This class is annotated with @Controller, which tells Spring
+ * that it is a controller-layer component.
+ * Spring automatically detects it and creates a bean in the application context,
+ * so it can be injected wherever needed.(see main.java)
+ */
 @Controller
 public class DeckController {
 
@@ -54,9 +56,6 @@ public class DeckController {
         return deckService.getDeckById(deckId);
     }
 
-    public DeckDTO updateDeck(Integer deckId, String newTitle, Integer newTagId) {
-        return deckService.updateDeck(deckId, newTitle, newTagId);
-    }
 
     public void deleteDeck(Integer deckId) {
         deckService.deleteDeck(deckId);
@@ -75,10 +74,7 @@ public class DeckController {
     public List<FlashcardDTO> getFlashcardsForDeck(Integer deckId) {
         return flashCardService.getFlashcardsForDeck(deckId);
     }
-
-    public FlashcardDTO updateFlashcard(Integer cardId, String newFront, String newBack) {
-        return flashCardService.updateFlashcard(cardId, newFront, newBack);
-    }
+    
 
     public void deleteFlashcard(Integer cardId) {
         flashCardService.deleteFlashcard(cardId);

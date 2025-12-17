@@ -1,13 +1,11 @@
-package org.flashcard.testview;
+package org.flashcard.view;
 
 import org.flashcard.application.dto.DeckDTO;
-import org.flashcard.application.dto.FlashcardDTO;
 import org.flashcard.controllers.DeckController;
 import org.flashcard.controllers.FilterController;
 import org.flashcard.controllers.UserController;
 import org.flashcard.controllers.observer.Observer;
 import org.flashcard.models.timers.CountdownListener;
-
 import javax.swing.*;
 import java.awt.*;
 import java.time.Duration;
@@ -18,18 +16,18 @@ public class HomeView extends JPanel implements Observer<List<DeckDTO>>, Countdo
     private final DeckController deckController;
     private final UserController userController;
     private final FilterController filterController;
-    private final AppFrame appFrame;
+    private final MainFrame mainFrame;
     private List<DeckDTO> allDecks;
 
 
     private JPanel gridPanel;
 
     public HomeView(DeckController deckController, UserController userController,
-                    FilterController filterController, AppFrame appFrame) {
+                    FilterController filterController, MainFrame mainFrame) {
         this.deckController = deckController;
         this.userController = userController;
         this.filterController = filterController;
-        this.appFrame = appFrame;
+        this.mainFrame = mainFrame;
 
         deckController.getDecksObservable().addListener(this);
         setDecks();
@@ -45,11 +43,10 @@ public class HomeView extends JPanel implements Observer<List<DeckDTO>>, Countdo
         gridPanel.setBackground(Color.WHITE);
         gridPanel.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 30));
 
-        // ⬇⬇⬇ NYTT: nu skapar vi scrollPane som variabel och tar bort border
+
         JScrollPane scrollPane = new JScrollPane(gridPanel);
         scrollPane.setBorder(null); // <-- tar bort tunna svarta linjen
         add(scrollPane, BorderLayout.CENTER);
-        // ⬆⬆⬆ END NEW
     }
     private void setDecks(){
         int userID = userController.getCurrentUserId();
@@ -64,17 +61,7 @@ public class HomeView extends JPanel implements Observer<List<DeckDTO>>, Countdo
 
         Integer userId = userController.getCurrentUserId();
         if (userId == null) return;
-
-        // Hämta dynamiskt beräknade decks med kort som är due today
-        //List<DeckDTO> decks = deckController.getDueDecksForUser(userId);
-
-        // Hämta ALLA decks med due-info
-
-
-
-        // Applicera sökfilter om text finns
         allDecks = filterController.searchDecks(userId, text, tagId);
-        // Sortera så att aktiva decks (med due cards) kommer först
         allDecks = allDecks.stream()
                 .sorted((d1, d2) -> Boolean.compare(
                         d2.getDueCount() > 0,
@@ -91,7 +78,7 @@ public class HomeView extends JPanel implements Observer<List<DeckDTO>>, Countdo
                 gridPanel.add(new DeckCard(
                         deck,
                         DeckCard.DeckCardContext.HOME_VIEW,
-                        e -> appFrame.startStudySession(deck.getId(), "today")
+                        e -> mainFrame.startStudySession(deck.getId(), "today")
                 ));
             } else {
                 // Decks med kort men inga due cards -> utgråade med countdown
@@ -106,13 +93,6 @@ public class HomeView extends JPanel implements Observer<List<DeckDTO>>, Countdo
                 ));
             }
         }
-
-
-
-
-
-
-
         gridPanel.revalidate();
         gridPanel.repaint();
     }
