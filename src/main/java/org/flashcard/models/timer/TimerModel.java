@@ -20,7 +20,6 @@ public class TimerModel {
 
     public void addTimerListener(CountdownListener listener, LocalDateTime nextReviewDate) {
         listenersPerDeck.putIfAbsent(listener, nextReviewDate);
-        System.out.println("KEY: "+ listener + "VALUE:  " + nextReviewDate);
     }
     public void removeTimerListener(CountdownListener listener){
         listenersPerDeck.remove(listener);
