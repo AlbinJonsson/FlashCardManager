@@ -3,7 +3,7 @@ package org.flashcard.view;
 import org.flashcard.application.dto.DeckDTO;
 import org.flashcard.application.dto.TagDTO;
 import org.flashcard.controllers.DeckController;
-import org.flashcard.models.timers.CountdownListener;
+import org.flashcard.models.timer.CountdownListener;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionListener;
@@ -13,8 +13,11 @@ import java.time.Duration;
  * Represents a visual component for a single deck, dynamically adapting its display
  * based on context (Home vs. Management) and handling real-time countdowns for locked study sessions.
  */
+public class DeckCard extends JPanel implements CountdownListener{
 
-public class DeckCard extends JPanel {
+    private Runnable onFinishedCallback;
+    private boolean disabled;
+
 
     public enum DeckCardContext {
         HOME_VIEW,
@@ -27,6 +30,7 @@ public class DeckCard extends JPanel {
     Timer countdownTimer;
     Duration timeLeft;
     JLabel countdownLabel = new JLabel();
+    String cardAvailableText;
     String countdownText;
     DeckController deckController;
     CountdownListener listener;
@@ -34,6 +38,7 @@ public class DeckCard extends JPanel {
     /** Standard constructor */
     public DeckCard(DeckDTO deck, DeckCardContext context, ActionListener onStudyClick) {
         this.deck = deck;
+        this.onFinishedCallback = onFinishedCallback;
         setLayout(new BorderLayout());
         setBackground(Color.WHITE);
         setBorder(BorderFactory.createLineBorder(new Color(220, 220, 220), 1));
@@ -134,22 +139,15 @@ public class DeckCard extends JPanel {
     public DeckCard(
             DeckDTO deck,
             boolean disabled,
-            String countdownText,
-            Duration timeLeft,
-            DeckController deckController,
-            CountdownListener listener
+            Runnable onFinishedCallback
 
     ) {
 
+        this (deck, DeckCardContext.HOME_VIEW, null, null);
+        this.disabled = disabled;
+        this.cardAvailableText = "Next Card available in: ";
+        this.onFinishedCallback = onFinishedCallback;
 
-        this (deck, DeckCardContext.HOME_VIEW, null);
-        this.timeLeft = timeLeft;
-        this.deck = deck;
-        this.countdownText = countdownText;
-        this.deckController = deckController;
-        this.listener = listener;
-        countdownTimer = new Timer(1000, e -> updateCountdown());
-        countdownTimer.start();
         if (disabled) {
             setBackground(new Color(103, 97, 97));
             studyButton.setEnabled(false);
@@ -167,18 +165,24 @@ public class DeckCard extends JPanel {
 
     }
 
-    private void updateCountdown() {
-        timeLeft = deckController.timeUntilDue(deck.getId());
-        if (timeLeft.isNegative() || timeLeft.isZero()) {
-            countdownLabel.setText(countdownText + "00:00:00");
-            countdownTimer.stop();
-            deckController.updateDeckCards(listener);
 
-        } else{
-        long hours = timeLeft.toHours();
-        long minutes = timeLeft.toMinutesPart();
-        long seconds = timeLeft.toSecondsPart();
-        countdownLabel.setText(countdownText + hours +":"+ minutes + ":" + seconds);
+    public boolean isDisabled(){
+        return this.disabled;
+    }
+
+    @Override
+    public void onTick(String countdown) {
+        this.countdownText = countdown;
+        countdownLabel.setText(cardAvailableText + countdownText);
+
+    }
+
+    @Override
+    public void onFinished() {
+        this.countdownText = "00d : 00h : 00m : 00s";
+        countdownLabel.setText(cardAvailableText + countdownText);
+        if (onFinishedCallback != null) {
+            SwingUtilities.invokeLater(onFinishedCallback);
         }
     }
 }

@@ -21,7 +21,6 @@ import java.util.List;
  * and returns the results back to the View.
  */
 @Controller
-@Transactional
 public class TagController {
 
     private final TagService tagService;

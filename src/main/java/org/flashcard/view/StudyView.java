@@ -28,7 +28,7 @@ public class StudyView extends JPanel implements Observer<FlashcardDTO> {
 
 
     private FlashcardDTO currentCard;
-    private String currentMode; // "today" or "all"
+    private String currentMode;
 
     private final Observer<Boolean> finishedListener = finished -> {
         if (finished != null && finished) handleSessionFinished();

@@ -5,6 +5,7 @@ import org.flashcard.controllers.DeckController;
 import org.flashcard.controllers.FilterController;
 import org.flashcard.controllers.UserController;
 import org.flashcard.controllers.observer.Observer;
+
 import javax.swing.*;
 import java.awt.*;
 import java.util.List;
@@ -89,7 +90,7 @@ public class MyDecksView extends JPanel implements Observer<List<DeckDTO>> {
                 wrapper.setOpaque(false);
 
                 DeckCard card = new DeckCard(d, DeckCard.DeckCardContext.MY_DECKS_VIEW,
-                        e -> mainFrame.startStudySession(d.getId(), "all"));
+                        e -> mainFrame.startStudySession(d.getId(), "all"), null);
                 wrapper.add(card, BorderLayout.CENTER);
 
                 JButton editBtn = new JButton("Edit");

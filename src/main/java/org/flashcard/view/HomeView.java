@@ -5,23 +5,25 @@ import org.flashcard.controllers.DeckController;
 import org.flashcard.controllers.FilterController;
 import org.flashcard.controllers.UserController;
 import org.flashcard.controllers.observer.Observer;
-import org.flashcard.models.timers.CountdownListener;
+
 import javax.swing.*;
 import java.awt.*;
-import java.time.Duration;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Serves as the primary dashboard for the user, displaying a filtered grid of study decks
  * and using real-time scheduling logic to distinguish between active and locked sessions.
  */
 
-public class HomeView extends JPanel implements Observer<List<DeckDTO>>, CountdownListener {
+public class HomeView extends JPanel implements Observer<List<DeckDTO>>{
 
     private final DeckController deckController;
     private final UserController userController;
     private final FilterController filterController;
     private final MainFrame mainFrame;
+    private final Map<Integer, DeckCard> activeDeckCards = new HashMap<>();
     private List<DeckDTO> allDecks;
 
 
@@ -66,7 +68,12 @@ public class HomeView extends JPanel implements Observer<List<DeckDTO>>, Countdo
 
         Integer userId = userController.getCurrentUserId();
         if (userId == null) return;
+
+
+        // Apply search and tag filter
         allDecks = filterController.searchDecks(userId, text, tagId);
+
+        // Sort by active decks first
         allDecks = allDecks.stream()
                 .sorted((d1, d2) -> Boolean.compare(
                         d2.getDueCount() > 0,
@@ -77,26 +84,34 @@ public class HomeView extends JPanel implements Observer<List<DeckDTO>>, Countdo
         for (DeckDTO deck : allDecks) {
             // Skip over decks with zero cards
             if (deck.getCardCount() == 0) continue;
+            //Get a DeckCard from the HashMap
+            DeckCard deckcard = activeDeckCards.get(deck.getId());
 
-            if (deck.getDueCount() > 0) {
-                // Active decks with due cards
-                gridPanel.add(new DeckCard(
-                        deck,
-                        DeckCard.DeckCardContext.HOME_VIEW,
-                        e -> mainFrame.startStudySession(deck.getId(), "today")
-                ));
-            } else {
-                // Decks with cards but no due cards -> grayed out with countdown
-                Duration timeLeft = deckController.timeUntilDue(deck.getId());
-                gridPanel.add(new DeckCard(
-                        deck,
-                        true,
-                        "Next Card available in: ",
-                        timeLeft,
-                        deckController,
-                        this
-                ));
+            //If deckcard doesn't exist or if the deck is not disabled while having at least 1 card due for today
+            if (deckcard == null || deckcard.isDisabled() == deck.getDueCount() > 0){
+
+                //If the deck already exists, remove it from the listener list
+                if (deckcard != null) deckController.removeTimerListener(deckcard);
+                //If the deck is due, make it playable...
+                if (deck.getDueCount() > 0){
+                    deckcard = new DeckCard(
+                            deck,
+                            DeckCard.DeckCardContext.HOME_VIEW,
+                            e -> mainFrame.startStudySession(deck.getId(),
+                                    "today"),
+                            null);
+
+                //...else make it unplayable with a countdown
+                } else {
+                    deckcard =  new DeckCard(deck, true, () -> refreshData(text, tagId));
+                    deckController.addTimerListener(deckcard, deck);
+                }
+                //(Re)place it in the HashMap
+                activeDeckCards.put(deck.getId(), deckcard);
+
             }
+            gridPanel.add(deckcard);
+
         }
         gridPanel.revalidate();
         gridPanel.repaint();
@@ -105,12 +120,9 @@ public class HomeView extends JPanel implements Observer<List<DeckDTO>>, Countdo
 
     @Override
     public void notify(List<DeckDTO> data) {
+        activeDeckCards.clear();
         refreshData(null, null);
     }
 
 
-    @Override
-    public void onCountdownFinished() {
-
-    }
 }
