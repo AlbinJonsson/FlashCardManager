@@ -4,6 +4,11 @@ import org.flashcard.controllers.*;
 import javax.swing.*;
 import java.awt.*;
 
+/**
+ * Acts as the primary window and high-level orchestrator of the application, managing
+ * the switching between different screens and centralizing access to the business logic controllers.
+ */
+
 public class MainFrame extends JFrame {
 
     private final UserController userController;
@@ -54,7 +59,7 @@ public class MainFrame extends JFrame {
 
     private void initComponents() {
 
-        // Navbar med filter callbacks
+        // Navbar with filter callbacks
         navbar = new Navbar(
                 this::navigateTo,
                 this::applyFilters,
@@ -68,8 +73,8 @@ public class MainFrame extends JFrame {
         mainContentPanel = new JPanel(cardLayout);
 
         homeView = new HomeView(deckController, userController,filterController, this);
-        myDecksView = new MyDecksView(deckController, userController,filterController, this); // Nu riktig klass
-        createDeckView = new CreateDeckView(deckController, userController,tagController, this); // NY
+        myDecksView = new MyDecksView(deckController, userController,filterController, this); // Now correct class
+        createDeckView = new CreateDeckView(deckController, userController,tagController, this); // NEW
         studyView = new StudyView(studyController,deckController, this);
         editDeckView = new EditDeckView(deckController, userController, this);
 
@@ -91,7 +96,7 @@ public class MainFrame extends JFrame {
         cardLayout.show(mainContentPanel, view);
     }
 
-    // När search eller tag ändras
+    // When search or tag changes
     public void applyFilters() {
         String search = navbar.getSearchText();
         Integer tagId = navbar.getSelectedTagId();

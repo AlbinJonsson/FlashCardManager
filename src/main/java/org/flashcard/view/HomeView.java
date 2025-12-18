@@ -11,6 +11,11 @@ import java.awt.*;
 import java.time.Duration;
 import java.util.List;
 
+/**
+ * Serves as the primary dashboard for the user, displaying a filtered grid of study decks
+ * and using real-time scheduling logic to distinguish between active and locked sessions.
+ */
+
 public class HomeView extends JPanel implements Observer<List<DeckDTO>>, CountdownListener {
 
     private final DeckController deckController;
@@ -45,7 +50,7 @@ public class HomeView extends JPanel implements Observer<List<DeckDTO>>, Countdo
 
 
         JScrollPane scrollPane = new JScrollPane(gridPanel);
-        scrollPane.setBorder(null); // <-- tar bort tunna svarta linjen
+        scrollPane.setBorder(null); // <-- removes thin black line
         add(scrollPane, BorderLayout.CENTER);
     }
     private void setDecks(){
@@ -68,20 +73,20 @@ public class HomeView extends JPanel implements Observer<List<DeckDTO>>, Countdo
                         d1.getDueCount() > 0
                 ))
                 .toList();
-        //Lägger till decks i vyn
+        //Add decks to grid
         for (DeckDTO deck : allDecks) {
-            // Hoppa över decks utan kort
+            // Skip over decks with zero cards
             if (deck.getCardCount() == 0) continue;
 
             if (deck.getDueCount() > 0) {
-                // Aktiva decks med due cards
+                // Active decks with due cards
                 gridPanel.add(new DeckCard(
                         deck,
                         DeckCard.DeckCardContext.HOME_VIEW,
                         e -> mainFrame.startStudySession(deck.getId(), "today")
                 ));
             } else {
-                // Decks med kort men inga due cards -> utgråade med countdown
+                // Decks with cards but no due cards -> grayed out with countdown
                 Duration timeLeft = deckController.timeUntilDue(deck.getId());
                 gridPanel.add(new DeckCard(
                         deck,
