@@ -60,7 +60,22 @@ public class HomeView extends JPanel implements Observer<List<DeckDTO>>, Countdo
         gridPanel.removeAll();
 
         Integer userId = userController.getCurrentUserId();
-        if (userId == null) return;
+        if (userId == null) {
+            // No user → show placeholder
+            gridPanel.setLayout(new BorderLayout());
+            JLabel noUserLabel = new JLabel("No user");
+            noUserLabel.setFont(new Font("SansSerif", Font.ITALIC, 18));
+            noUserLabel.setHorizontalAlignment(SwingConstants.CENTER);
+            gridPanel.add(noUserLabel, BorderLayout.CENTER);
+
+            gridPanel.revalidate();
+            gridPanel.repaint();
+            return;
+        }
+
+        // normal layout for decks
+        gridPanel.setLayout(new GridLayout(0, 3, 20, 20));
+
         allDecks = filterController.searchDecks(userId, text, tagId);
         allDecks = allDecks.stream()
                 .sorted((d1, d2) -> Boolean.compare(
@@ -68,20 +83,17 @@ public class HomeView extends JPanel implements Observer<List<DeckDTO>>, Countdo
                         d1.getDueCount() > 0
                 ))
                 .toList();
-        //Lägger till decks i vyn
+
         for (DeckDTO deck : allDecks) {
-            // Hoppa över decks utan kort
             if (deck.getCardCount() == 0) continue;
 
             if (deck.getDueCount() > 0) {
-                // Aktiva decks med due cards
                 gridPanel.add(new DeckCard(
                         deck,
                         DeckCard.DeckCardContext.HOME_VIEW,
                         e -> mainFrame.startStudySession(deck.getId(), "today")
                 ));
             } else {
-                // Decks med kort men inga due cards -> utgråade med countdown
                 Duration timeLeft = deckController.timeUntilDue(deck.getId());
                 gridPanel.add(new DeckCard(
                         deck,
@@ -93,6 +105,7 @@ public class HomeView extends JPanel implements Observer<List<DeckDTO>>, Countdo
                 ));
             }
         }
+
         gridPanel.revalidate();
         gridPanel.repaint();
     }
