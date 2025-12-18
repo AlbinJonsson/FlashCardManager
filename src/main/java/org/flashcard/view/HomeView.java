@@ -5,18 +5,25 @@ import org.flashcard.controllers.DeckController;
 import org.flashcard.controllers.FilterController;
 import org.flashcard.controllers.UserController;
 import org.flashcard.controllers.observer.Observer;
-import org.flashcard.models.timers.CountdownListener;
+
 import javax.swing.*;
 import java.awt.*;
-import java.time.Duration;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-public class HomeView extends JPanel implements Observer<List<DeckDTO>>, CountdownListener {
+/**
+ * Serves as the primary dashboard for the user, displaying a filtered grid of study decks
+ * and using real-time scheduling logic to distinguish between active and locked sessions.
+ */
+
+public class HomeView extends JPanel implements Observer<List<DeckDTO>>{
 
     private final DeckController deckController;
     private final UserController userController;
     private final FilterController filterController;
     private final MainFrame mainFrame;
+    private final Map<Integer, DeckCard> activeDeckCards = new HashMap<>();
     private List<DeckDTO> allDecks;
 
 
@@ -45,7 +52,7 @@ public class HomeView extends JPanel implements Observer<List<DeckDTO>>, Countdo
 
 
         JScrollPane scrollPane = new JScrollPane(gridPanel);
-        scrollPane.setBorder(null); // <-- tar bort tunna svarta linjen
+        scrollPane.setBorder(null); // <-- removes thin black line
         add(scrollPane, BorderLayout.CENTER);
     }
     private void setDecks(){
@@ -60,39 +67,59 @@ public class HomeView extends JPanel implements Observer<List<DeckDTO>>, Countdo
         gridPanel.removeAll();
 
         Integer userId = userController.getCurrentUserId();
-        if (userId == null) return;
+
+        if (userId == null) {
+            // Show "No user" message
+            JLabel noUserLabel = new JLabel("No user selected");
+            noUserLabel.setHorizontalAlignment(SwingConstants.CENTER);
+            noUserLabel.setFont(new Font("SansSerif", Font.BOLD, 18));
+            noUserLabel.setForeground(Color.GRAY);
+            gridPanel.setLayout(new BorderLayout()); // override GridLayout
+            gridPanel.add(noUserLabel, BorderLayout.CENTER);
+
+            gridPanel.revalidate();
+            gridPanel.repaint();
+            return;
+        }
+
+        // Reset to GridLayout if a user exists
+        gridPanel.setLayout(new GridLayout(0, 3, 20, 20));
+
+        // Apply search and tag filter
         allDecks = filterController.searchDecks(userId, text, tagId);
+
+        // Sort by active decks first
         allDecks = allDecks.stream()
                 .sorted((d1, d2) -> Boolean.compare(
                         d2.getDueCount() > 0,
                         d1.getDueCount() > 0
                 ))
                 .toList();
-        //Lägger till decks i vyn
+        //Add decks to grid
         for (DeckDTO deck : allDecks) {
-            // Hoppa över decks utan kort
+            // Skip over decks with zero cards
             if (deck.getCardCount() == 0) continue;
+            DeckCard deckcard = activeDeckCards.get(deck.getId());
 
-            if (deck.getDueCount() > 0) {
-                // Aktiva decks med due cards
-                gridPanel.add(new DeckCard(
-                        deck,
-                        DeckCard.DeckCardContext.HOME_VIEW,
-                        e -> mainFrame.startStudySession(deck.getId(), "today")
-                ));
-            } else {
-                // Decks med kort men inga due cards -> utgråade med countdown
-                Duration timeLeft = deckController.timeUntilDue(deck.getId());
-                gridPanel.add(new DeckCard(
-                        deck,
-                        true,
-                        "Next Card available in: ",
-                        timeLeft,
-                        deckController,
-                        this
-                ));
+            if (deckcard == null || deckcard.isDisabled() == deck.getDueCount() > 0) {
+                if (deckcard != null) deckController.removeTimerListener(deckcard);
+                if (deck.getDueCount() > 0) {
+                    deckcard = new DeckCard(
+                            deck,
+                            DeckCard.DeckCardContext.HOME_VIEW,
+                            e -> mainFrame.startStudySession(deck.getId(),
+                                    "today"));
+
+                //...else make it unplayable with a countdown
+                } else {
+                    deckcard = new DeckCard(deck, true, () -> refreshData(text, tagId));
+                    deckController.addTimerListener(deckcard, deck);
+                }
+                activeDeckCards.put(deck.getId(), deckcard);
             }
+            gridPanel.add(deckcard);
         }
+
         gridPanel.revalidate();
         gridPanel.repaint();
     }
@@ -100,12 +127,9 @@ public class HomeView extends JPanel implements Observer<List<DeckDTO>>, Countdo
 
     @Override
     public void notify(List<DeckDTO> data) {
+        activeDeckCards.clear();
         refreshData(null, null);
     }
 
 
-    @Override
-    public void onCountdownFinished() {
-
-    }
 }

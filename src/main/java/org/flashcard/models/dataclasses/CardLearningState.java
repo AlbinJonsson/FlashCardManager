@@ -15,6 +15,12 @@ import java.time.temporal.ChronoUnit;
  *   3. Maps database rows to Deck objects and vice versa.
  * This helps us reduce the amount of boilerplate SQL we need to write.
  */
+
+/**
+ * Represents the persistent tracking data for a flashcard's spaced repetition schedule,
+ * storing review history, next due dates, and retention statistics.
+ */
+
 @Entity
 @Table(name = "CardLearningState")
 public class CardLearningState {
@@ -74,8 +80,8 @@ public class CardLearningState {
     public void setNumberOfTimesViewed(Integer numberOfTimesViewed) { this.numberOfTimesViewed = numberOfTimesViewed; }
 
     // Check if card is due today or earlier
-    public boolean isDueToday(LocalDateTime now) {
-        return nextReviewDate == null || !nextReviewDate.isAfter(now);
+    public boolean isDueToday() {
+        return nextReviewDate == null || !nextReviewDate.isAfter(LocalDateTime.now());
     }
 
     @Override

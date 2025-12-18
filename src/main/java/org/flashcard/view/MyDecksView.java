@@ -5,10 +5,15 @@ import org.flashcard.controllers.DeckController;
 import org.flashcard.controllers.FilterController;
 import org.flashcard.controllers.UserController;
 import org.flashcard.controllers.observer.Observer;
+
 import javax.swing.*;
 import java.awt.*;
 import java.util.List;
 
+/**
+ * Provides a management dashboard for the user's personal library, allowing for deck
+ * organization, filtering, and direct access to both study sessions and content editing.
+ */
 
 public class MyDecksView extends JPanel implements Observer<List<DeckDTO>> {
 
@@ -60,7 +65,7 @@ public class MyDecksView extends JPanel implements Observer<List<DeckDTO>> {
 
 
         JScrollPane scrollPane = new JScrollPane(gridPanel);
-        scrollPane.setBorder(null); // <-- tar bort linjen
+        scrollPane.setBorder(null); // <-- removes the line
         add(scrollPane, BorderLayout.CENTER);
 
     }
