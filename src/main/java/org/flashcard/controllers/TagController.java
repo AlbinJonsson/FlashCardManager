@@ -13,7 +13,6 @@ import java.util.List;
  * so it can be injected wherever needed.(see main.java)
  */
 @Controller
-@Transactional
 public class TagController {
 
     private final TagService tagService;

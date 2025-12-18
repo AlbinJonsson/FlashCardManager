@@ -6,9 +6,9 @@ import org.flashcard.application.dto.TagDTO;
 import org.flashcard.controllers.observer.Observable;   // <-- OBSERVER
 import org.flashcard.models.services.DeckService;
 import org.flashcard.models.services.FlashCardService;
-import org.flashcard.models.timers.CountdownListener;
+import org.flashcard.models.timer.CountdownListener;
 import org.springframework.stereotype.Controller;
-import java.time.Duration;
+
 import java.util.List;
 /* We use Spring Data JPA to access the database.
  * This class is annotated with @Controller, which tells Spring
@@ -74,7 +74,7 @@ public class DeckController {
     public List<FlashcardDTO> getFlashcardsForDeck(Integer deckId) {
         return flashCardService.getFlashcardsForDeck(deckId);
     }
-    
+
 
     public void deleteFlashcard(Integer cardId) {
         flashCardService.deleteFlashcard(cardId);
@@ -89,12 +89,11 @@ public class DeckController {
         return flashCardService.showEstimatedDate(rating, cardID);
     }
 
-    public Duration timeUntilDue(int deckID){
-        return deckService.timeUntilDue(deckID);
+    public void addTimerListener(CountdownListener listener, DeckDTO deck){
+        deckService.addTimerListener(listener, deck);
     }
-    public void updateDeckCards(CountdownListener listener){
-        listener.onCountdownFinished();
-
+    public void removeTimerListener(CountdownListener listener){
+        deckService.removeTimerListener(listener);
     }
 
 
