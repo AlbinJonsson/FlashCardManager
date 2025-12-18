@@ -143,7 +143,7 @@ public class DeckCard extends JPanel implements CountdownListener{
 
     ) {
 
-        this (deck, DeckCardContext.HOME_VIEW, null, null);
+        this (deck, DeckCardContext.HOME_VIEW, null);
         this.disabled = disabled;
         this.cardAvailableText = "Next Card available in: ";
         this.onFinishedCallback = onFinishedCallback;

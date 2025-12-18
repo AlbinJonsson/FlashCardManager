@@ -98,8 +98,7 @@ public class HomeView extends JPanel implements Observer<List<DeckDTO>>{
                             deck,
                             DeckCard.DeckCardContext.HOME_VIEW,
                             e -> mainFrame.startStudySession(deck.getId(),
-                                    "today"),
-                            null);
+                                    "today"));
 
                 //...else make it unplayable with a countdown
                 } else {

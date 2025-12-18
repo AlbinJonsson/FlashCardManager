@@ -37,7 +37,7 @@ public class MainFrame extends JFrame {
         this.filterController = filterController;
 
         initFrame();
-        autoLoginForTesting();
+        autoLogin();
         initComponents();
     }
 
@@ -49,11 +49,46 @@ public class MainFrame extends JFrame {
         setLayout(new BorderLayout());
     }
 
-    private void autoLoginForTesting() {
-        try {
-            userController.loginByUserId(1);
-        } catch (Exception e) {
-            System.err.println("Auto-login failed: " + e.getMessage());
+    private void autoLogin() {
+        var users = userController.getAllUsers();
+
+        if (users.isEmpty()) {
+            promptCreateUser();
+            return;
+        }
+
+        // Prefer user with ID = 1
+        users.stream()
+                .filter(u -> u.getId() == 1)
+                .findFirst()
+                .ifPresentOrElse(
+                        u -> userController.loginByUserId(1),
+                        () -> userController.loginByUserId(users.get(0).getId())
+                );
+    }
+
+    private void promptCreateUser() {
+        while (true) {
+            String name = JOptionPane.showInputDialog(
+                    null,
+                    "No users found.\nPlease create a new user:",
+                    "Create User",
+                    JOptionPane.PLAIN_MESSAGE
+            );
+
+            name = name.trim();
+            if (name.length() >= 3) {
+                var newUser = userController.createUser(name);
+                userController.loginByUserId(newUser.getId());
+                return;
+            }
+
+            JOptionPane.showMessageDialog(
+                    null,
+                    "Username must be at least 3 characters.",
+                    "Invalid Username",
+                    JOptionPane.WARNING_MESSAGE
+            );
         }
     }
 
