@@ -13,6 +13,12 @@ import java.time.Duration;
 
 
 public class DeckCard extends JPanel {
+
+    public enum DeckCardContext {
+        HOME_VIEW,
+        MY_DECKS_VIEW
+    }
+
     JLabel infoLabel;
     JButton studyButton = new JButton("Start");
     DeckDTO deck;
@@ -23,22 +29,20 @@ public class DeckCard extends JPanel {
     DeckController deckController;
     CountdownListener listener;
 
-    public DeckCard(DeckDTO deck, ActionListener onStudyClick) {
-
+    // --- Standard konstruktor ---
+    public DeckCard(DeckDTO deck, DeckCardContext context, ActionListener onStudyClick) {
         this.deck = deck;
         setLayout(new BorderLayout());
         setBackground(Color.WHITE);
         setBorder(BorderFactory.createLineBorder(new Color(220, 220, 220), 1));
         setPreferredSize(new Dimension(220, 192));
 
-
-
-        // --- Top Panel (Tag + Titel + Progress) ---
+        // --- Top Panel (Tag + Title + Progress) ---
         JPanel topPanel = new JPanel(new BorderLayout());
         topPanel.setOpaque(false);
         topPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
-        // --- Tag i vänstra hörnet ---
+        // Tag
         JPanel tagPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         TagDTO tagDTO = deck.getTagDTO();
 
@@ -55,24 +59,24 @@ public class DeckCard extends JPanel {
 
         topPanel.add(tagPanel, BorderLayout.WEST);
 
-        // --- Titel centrerad ---
+        // Title
         JLabel titleLabel = new JLabel(deck.getTitle());
         titleLabel.setFont(new Font("SansSerif", Font.BOLD, 16));
         titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
         topPanel.add(titleLabel, BorderLayout.CENTER);
 
-        // --- Progress i högra hörnet ---
+        // Progress
         double progressPercent = (deck.getProgressPercent() != 0) ? deck.getProgressPercent() : 0;
 
         JProgressBar progressBar = new JProgressBar(0, 100);
-        progressBar.setValue((int)progressPercent);
+        progressBar.setValue((int) progressPercent);
         progressBar.setForeground(new Color(50, 180, 50));
         progressBar.setBackground(new Color(220, 220, 220));
         progressBar.setPreferredSize(new Dimension(60, 10));
         progressBar.setBorder(BorderFactory.createLineBorder(Color.GRAY, 1));
         progressBar.setStringPainted(false);
 
-        JLabel progressLabel = new JLabel((int)progressPercent + "%");
+        JLabel progressLabel = new JLabel((int) progressPercent + "%");
         progressLabel.setFont(new Font("SansSerif", Font.PLAIN, 10));
         progressLabel.setForeground(new Color(50, 180, 50));
         progressLabel.setHorizontalAlignment(SwingConstants.CENTER);
@@ -86,9 +90,12 @@ public class DeckCard extends JPanel {
 
         add(topPanel, BorderLayout.NORTH);
 
-        // --- Info (Due Count or Next review) ---
-
-        infoLabel = new JLabel("Total Cards: " + deck.getDueCount());
+        // --- Info Label (beroende på kontext) ---
+        if (context == DeckCardContext.HOME_VIEW) {
+            infoLabel = new JLabel("Cards due: " + deck.getDueCount());
+        } else { // MY_DECKS_VIEW
+            infoLabel = new JLabel("Total cards: " + deck.getCardCount());
+        }
         infoLabel.setFont(new Font("SansSerif", Font.PLAIN, 14));
         infoLabel.setForeground(new Color(100, 100, 100));
         infoLabel.setHorizontalAlignment(SwingConstants.CENTER);
@@ -99,25 +106,21 @@ public class DeckCard extends JPanel {
         studyButton.setForeground(Color.WHITE);
         studyButton.setFocusPainted(false);
         studyButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-
-        // Lägg till ActionListener om den inte är null
         if (onStudyClick != null) {
             studyButton.addActionListener(onStudyClick);
         }
-
 
         // --- Center panel ---
         JPanel centerPanel = new JPanel(new GridLayout(2, 1));
         centerPanel.setOpaque(false);
         centerPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-
         centerPanel.add(infoLabel);
 
         add(centerPanel, BorderLayout.CENTER);
         add(studyButton, BorderLayout.SOUTH);
     }
 
-    // Ny konstruktor för inaktiverat kort med nedräkningstext
+    // --- Konstruktor med countdown och disabled state ---
     public DeckCard(
             DeckDTO deck,
             ActionListener onStudyClick,
@@ -128,7 +131,12 @@ public class DeckCard extends JPanel {
             CountdownListener listener
 
     ) {
-        this(deck, onStudyClick); // återanvänd befintlig konstruktor
+        this.deck = deck;
+        setLayout(new BorderLayout());
+        setBackground(Color.WHITE);
+        setBorder(BorderFactory.createLineBorder(new Color(220, 220, 220), 1));
+        setPreferredSize(new Dimension(220, 192));
+
         this.timeLeft = timeLeft;
         this.deck = deck;
         this.countdownText = countdownText;
@@ -138,7 +146,6 @@ public class DeckCard extends JPanel {
         countdownTimer.start();
         if (disabled) {
             setBackground(new Color(103, 97, 97));
-
             studyButton.setEnabled(false);
             studyButton.setBackground(new Color(103, 97, 97));
             studyButton.setForeground(Color.DARK_GRAY);
@@ -146,18 +153,17 @@ public class DeckCard extends JPanel {
             studyButton.setText(" ");
 
             countdownLabel = new JLabel(countdownText, SwingConstants.CENTER);
-            countdownLabel.setFont(new Font("SansSerif", Font.ITALIC, 14)); // ⬅ större font
-            countdownLabel.setForeground(new Color(255, 255, 255));          // ⬅ tydligare färg
-
+            countdownLabel.setFont(new Font("SansSerif", Font.ITALIC, 14));
+            countdownLabel.setForeground(new Color(255, 255, 255));
 
             add(countdownLabel, BorderLayout.CENTER);
         }
 
     }
 
-    private void updateCountdown(){
+    private void updateCountdown() {
         timeLeft = deckController.timeUntilDue(deck.getId());
-        if (timeLeft.isNegative() || timeLeft.isZero()){
+        if (timeLeft.isNegative() || timeLeft.isZero()) {
             countdownLabel.setText(countdownText + "00:00:00");
             countdownTimer.stop();
             deckController.updateDeckCards(listener);

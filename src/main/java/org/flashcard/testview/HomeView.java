@@ -1,6 +1,7 @@
 package org.flashcard.testview;
 
 import org.flashcard.application.dto.DeckDTO;
+import org.flashcard.application.dto.FlashcardDTO;
 import org.flashcard.controllers.DeckController;
 import org.flashcard.controllers.FilterController;
 import org.flashcard.controllers.UserController;
@@ -68,7 +69,6 @@ public class HomeView extends JPanel implements Observer<List<DeckDTO>>, Countdo
         List<DeckDTO> notDueDecks = filterController.getNotDueDecksForUser(userId);
         List<DeckDTO> allDecks = deckController.getAllDecksForUser(userId);
 
-
         // Applicera sökfilter om text finns
         if (text != null && !text.isBlank()) {
             allDecks = allDecks.stream()
@@ -92,12 +92,18 @@ public class HomeView extends JPanel implements Observer<List<DeckDTO>>, Countdo
                 .toList();
         //Lägger till decks i vyn
         for (DeckDTO deck : allDecks) {
-            //Lägger till decks som kan spelas
+            // Hoppa över decks utan kort
+            if (deck.getCardCount() == 0) continue;
+
             if (deck.getDueCount() > 0) {
-                gridPanel.add(new DeckCard(deck, e -> appFrame.startStudySession(deck.getId(), "today")));
-            }
-            else {
-                //Lägger till decks som inte kan spelas med en countdown timer
+                // Aktiva decks med due cards
+                gridPanel.add(new DeckCard(
+                        deck,
+                        DeckCard.DeckCardContext.HOME_VIEW,
+                        e -> appFrame.startStudySession(deck.getId(), "today")
+                ));
+            } else {
+                // Decks med kort men inga due cards -> utgråade med countdown
                 Duration timeLeft = deckController.timeUntilDue(deck.getId());
                 gridPanel.add(
                         new DeckCard(
@@ -123,4 +129,12 @@ public class HomeView extends JPanel implements Observer<List<DeckDTO>>, Countdo
     public void onCountdownFinished() {
         refreshData(null, null);
     }
+
+
+//    @Override
+//    public void updateTime(String countdown) {
+//        this.countdown = countdown;
+//        gridPanel.revalidate();
+//        gridPanel.repaint();
+//    }
 }
