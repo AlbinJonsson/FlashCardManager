@@ -1,7 +1,6 @@
 package org.flashcard.testview;
 
 import org.flashcard.application.dto.DeckDTO;
-import org.flashcard.application.dto.FlashcardDTO;
 import org.flashcard.application.dto.TagDTO;
 import org.flashcard.controllers.DeckController;
 import org.flashcard.models.timers.CountdownListener;
@@ -10,12 +9,11 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionListener;
 import java.time.Duration;
-import java.time.LocalDateTime;
-
 
 public class DeckCard extends JPanel implements CountdownListener{
 
-
+    private Runnable onFinishedCallback;
+    private boolean disabled;
 
     public enum DeckCardContext {
         HOME_VIEW,
@@ -33,9 +31,10 @@ public class DeckCard extends JPanel implements CountdownListener{
     DeckController deckController;
     CountdownListener listener;
 
-    // --- Standard konstruktor ---
-    public DeckCard(DeckDTO deck, DeckCardContext context, ActionListener onStudyClick) {
+    // --- Standard constructor ---
+    public DeckCard(DeckDTO deck, DeckCardContext context, ActionListener onStudyClick, Runnable onFinishedCallback) {
         this.deck = deck;
+        this.onFinishedCallback = onFinishedCallback;
         setLayout(new BorderLayout());
         setBackground(Color.WHITE);
         setBorder(BorderFactory.createLineBorder(new Color(220, 220, 220), 1));
@@ -94,7 +93,7 @@ public class DeckCard extends JPanel implements CountdownListener{
 
         add(topPanel, BorderLayout.NORTH);
 
-        // --- Info Label (beroende på kontext) ---
+        // --- Info Label (dependent on context) ---
         if (context == DeckCardContext.HOME_VIEW) {
             infoLabel = new JLabel("Cards due: " + deck.getDueCount());
         } else { // MY_DECKS_VIEW
@@ -132,25 +131,19 @@ public class DeckCard extends JPanel implements CountdownListener{
         add(studyButton, BorderLayout.SOUTH);
     }
 
-    // --- Konstruktor med countdown och disabled state ---
+    // --- Constructor with countdown and disabled state ---
     public DeckCard(
             DeckDTO deck,
             boolean disabled,
-            DeckController deckController
+            Runnable onFinishedCallback
 
     ) {
 
-//        setLayout(new BorderLayout());
-//        setBackground(Color.WHITE);
-//        setBorder(BorderFactory.createLineBorder(new Color(220, 220, 220), 1));
-//        setPreferredSize(new Dimension(220, 192));
-        this (deck, DeckCardContext.HOME_VIEW, null);
-        this.deck = deck;
+        this (deck, DeckCardContext.HOME_VIEW, null, null);
+        this.disabled = disabled;
         this.cardAvailableText = "Next Card available in: ";
-        this.deckController = deckController;
-        deckController.addTimerListener(this, deck.getId());
-        countdownTimer = new Timer(1000, e -> updateCountdown());
-        countdownTimer.start();
+        this.onFinishedCallback = onFinishedCallback;
+
         if (disabled) {
             setBackground(new Color(103, 97, 97));
             studyButton.setEnabled(false);
@@ -168,13 +161,11 @@ public class DeckCard extends JPanel implements CountdownListener{
 
     }
 
-    private void updateCountdown() {
 
-
-
-
-
+    public boolean isDisabled(){
+        return this.disabled;
     }
+
     @Override
     public void onTick(String countdown) {
         this.countdownText = countdown;
@@ -186,7 +177,9 @@ public class DeckCard extends JPanel implements CountdownListener{
     public void onFinished() {
         this.countdownText = "00d : 00h : 00m : 00s";
         countdownLabel.setText(cardAvailableText + countdownText);
-        deckController.updateDeckCards();
+        if (onFinishedCallback != null) {
+            SwingUtilities.invokeLater(onFinishedCallback);
+        }
     }
 
 }

@@ -85,7 +85,7 @@ public class MyDecksView extends JPanel implements Observer<List<DeckDTO>> {
                 wrapper.setOpaque(false);
 
                 DeckCard card = new DeckCard(d, DeckCard.DeckCardContext.MY_DECKS_VIEW,
-                        e -> appFrame.startStudySession(d.getId(), "all"));
+                        e -> appFrame.startStudySession(d.getId(), "all"), null);
                 wrapper.add(card, BorderLayout.CENTER);
 
                 JButton editBtn = new JButton("Edit");

@@ -13,9 +13,8 @@ public class StudyTodayAlgorithm implements StudyAlgorithm {
 
     @Override
     public List<Flashcard> prepareCards(Deck deck, User user) {
-        LocalDateTime now = LocalDateTime.now();
         return deck.getCards().stream()
-                .filter(card -> card.getCardLearningState() != null && card.getCardLearningState().isDueToday(now))
+                .filter(card -> card.getCardLearningState() != null && card.getCardLearningState().isDueToday())
                 .collect(Collectors.toList());
     }
 }

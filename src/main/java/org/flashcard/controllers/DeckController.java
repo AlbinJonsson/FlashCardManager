@@ -95,15 +95,15 @@ public class DeckController {
         return flashCardService.showEstimatedDate(rating, cardID);
     }
 
-    public void updateDeckCards(){
-        deckService.updateDeckCards();
-    }
 
     public long getDueCount(int deckID) {
         return deckService.getDueCount(deckID);
     }
-    public void addTimerListener(CountdownListener listener, int deckID){
-        deckService.addTimerListener(listener, deckID);
+    public void addTimerListener(CountdownListener listener, DeckDTO deck){
+        deckService.addTimerListener(listener, deck);
+    }
+    public void removeTimerListener(CountdownListener listener){
+        deckService.removeTimerListener(listener);
     }
 
 

@@ -189,7 +189,7 @@ public class DeckService {
 
     private boolean isCardDue(Flashcard card) {
         CardLearningState state = card.getCardLearningState();
-        return state == null || state.isDueToday(LocalDateTime.now());
+        return state == null || state.isDueToday();
     }
 
     public DeckDTO updateDeck(Integer deckId, String newTitle, Integer newTagId) {
@@ -305,14 +305,14 @@ public class DeckService {
                 .orElse(null);
     }
 
-    public void updateDeckCards(){
-        decksObservable.notifyListeners(null);
-    }
-    public void addTimerListener(CountdownListener listener, int deckID){
-        Flashcard flashcard = getNextReviewableCard(deckID);
+    public void addTimerListener(CountdownListener listener, DeckDTO deck){
+        Flashcard flashcard = getNextReviewableCard(deck.getId());
         if (flashcard != null)
-            timerModel.addTimerListener(listener, deckID, flashcard.getCardLearningState().getNextReviewDate());
-        decksObservable.notifyListeners(null);
+            timerModel.addTimerListener(listener, flashcard.getCardLearningState().getNextReviewDate());
+
+    }
+    public void removeTimerListener(CountdownListener listener){
+        timerModel.removeTimerListener(listener);
     }
 
 

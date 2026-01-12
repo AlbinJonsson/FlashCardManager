@@ -1,32 +1,16 @@
 package org.flashcard.models.timers;
-
-
-
-
-import org.flashcard.models.dataclasses.Deck;
-import org.flashcard.models.dataclasses.Flashcard;
-import org.flashcard.models.services.DeckService;
-import org.flashcard.repositories.DeckRepository;
-
 import javax.swing.*;
 import javax.swing.Timer;
-import java.awt.event.ActionListener;
-import java.sql.Time;
 import java.time.Duration;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 
 public class TimerModel {
-//    private final Timer timer;
+//
 
-    private CountdownListener listener;
-    private final Map<Integer, Duration> timeLeftPerDeck = new HashMap<>();
-    private final Map<Integer, CountdownListener> listenersPerDeck = new HashMap<>();
-    private Duration timeLeft;
-    private String countdown;
-    private boolean finishedSent;
-    private final javax.swing.Timer timer;
+
+    private final Map<CountdownListener, LocalDateTime> listenersPerDeck = new HashMap<>();
+    private final Timer timer;
 
 
 
@@ -35,35 +19,34 @@ public class TimerModel {
         timer.start();
     }
 
-    public void addTimerListener(CountdownListener listener, int deckID, LocalDateTime nextReviewDate){
-        if (nextReviewDate.isAfter(LocalDateTime.now()))
-            timeLeft = Duration.between(LocalDateTime.now(), nextReviewDate);
-        listenersPerDeck.put(deckID, listener);
-        timeLeftPerDeck.put(deckID, timeLeft);
+    public void addTimerListener(CountdownListener listener, LocalDateTime nextReviewDate) {
+        listenersPerDeck.putIfAbsent(listener, nextReviewDate);
+        System.out.println("KEY: "+ listener + "VALUE:  " + nextReviewDate);
     }
-//    public List<CountdownListener> getListeners(){
-//        return listeners;
-//    }
+    public void removeTimerListener(CountdownListener listener){
+        listenersPerDeck.remove(listener);
+    }
 
     public void updateTimer() {
-        for (int deckID : timeLeftPerDeck.keySet()) {
-            if (timeLeftPerDeck.get(deckID).isNegative() || timeLeftPerDeck.get(deckID).isZero()) {
-                this.timeLeft = Duration.ZERO;
-                countdown = format(timeLeft);
-                listenersPerDeck.get(deckID).onTick(countdown);
-                listenersPerDeck.get(deckID).onFinished();
+        Iterator<Map.Entry<CountdownListener, LocalDateTime>> iterator = listenersPerDeck.entrySet().iterator();
 
+        while (iterator.hasNext()) {
+            Map.Entry<CountdownListener, LocalDateTime> entry = iterator.next();
+            CountdownListener listener = entry.getKey();
+            LocalDateTime nextReviewDate = entry.getValue();
+
+            Duration timeLeft = Duration.between(LocalDateTime.now(), nextReviewDate);
+
+            if (timeLeft.isZero() || timeLeft.isNegative()) {
+                // Remove listener
+                iterator.remove();
+                //Notify that countdown ended
+                listener.onFinished();
             } else {
-                timeLeft = timeLeftPerDeck.get(deckID);
-                countdown = format(timeLeft);
-                listenersPerDeck.get(deckID).onTick(countdown);
+                listener.onTick(format(timeLeft));
             }
         }
     }
-
-
-
-
 
 
     private String format(Duration timeLeft){
