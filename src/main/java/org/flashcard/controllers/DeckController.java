@@ -6,10 +6,9 @@ import org.flashcard.application.dto.TagDTO;
 import org.flashcard.controllers.observer.Observable;   // <-- OBSERVER
 import org.flashcard.models.services.DeckService;
 import org.flashcard.models.services.FlashCardService;
-import org.flashcard.models.timers.CountdownListener;
+import org.flashcard.models.timer.CountdownListener;
 import org.springframework.stereotype.Controller;
-import java.time.Duration;
-import java.time.LocalDateTime;
+
 import java.util.List;
 /* We use Spring Data JPA to access the database.
  * This class is annotated with @Controller, which tells Spring

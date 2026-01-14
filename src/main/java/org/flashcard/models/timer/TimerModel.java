@@ -1,5 +1,4 @@
-package org.flashcard.models.timers;
-import javax.swing.*;
+package org.flashcard.models.timer;
 import javax.swing.Timer;
 import java.time.Duration;
 import java.time.LocalDateTime;

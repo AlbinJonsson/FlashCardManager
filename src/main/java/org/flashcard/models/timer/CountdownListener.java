@@ -1,4 +1,4 @@
-package org.flashcard.models.timers;
+package org.flashcard.models.timer;
 
 
 

@@ -3,7 +3,7 @@ package org.flashcard.view;
 import org.flashcard.application.dto.DeckDTO;
 import org.flashcard.application.dto.TagDTO;
 import org.flashcard.controllers.DeckController;
-import org.flashcard.models.timers.CountdownListener;
+import org.flashcard.models.timer.CountdownListener;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionListener;
